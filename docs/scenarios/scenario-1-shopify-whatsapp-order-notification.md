@@ -16,7 +16,7 @@ The logic adapts the acknowledgement message depending on the order time in Duba
 - after hours → confirmation with next-morning expectation
 - late night → defer proactive confirmation to the Morning WhatsApp Sender scenario
 
-It also logs each acknowledgement into Google Sheets for traceability and follow-up control. :contentReference[oaicite:2]{index=2}
+It also logs each acknowledgement into Google Sheets for traceability and follow-up control. 
 
 ---
 
@@ -34,7 +34,7 @@ It also logs each acknowledgement into Google Sheets for traceability and follow
 - Make.com (automation engine)
 - Google Sheets (configuration + logging)
 - WhatsApp Cloud API (Meta Business)
-- Telegram (support escalation – separate scenario) :contentReference[oaicite:3]{index=3}
+- Telegram (support escalation – separate scenario) 
 
 ---
 
@@ -52,7 +52,7 @@ It also logs each acknowledgement into Google Sheets for traceability and follow
 - Phone number
 - Order items
 - Order total
-- Created at timestamp :contentReference[oaicite:4]{index=4}
+- Created at timestamp 
 
 ---
 
@@ -78,15 +78,15 @@ Used via:
 
 ### Important note
 Current implementation is **partially dynamic and partially hardcoded**.  
-Backlog item: move all hour boundaries fully into Google Sheets so business hours can be adjusted centrally without editing Make router filters. :contentReference[oaicite:5]{index=5}
+Backlog item: move all hour boundaries fully into Google Sheets so business hours can be adjusted centrally without editing Make router filters. 
 
 ### Google Sheets used
 
 #### 1. `automation_config`
-Stores business-hour boundaries. :contentReference[oaicite:6]{index=6}
+Stores business-hour boundaries. 
 
 #### 2. `orders_acknowledged`
-Stores acknowledgement logging and morning follow-up status. :contentReference[oaicite:7]{index=7}
+Stores acknowledgement logging and morning follow-up status. 
 
 ---
 
@@ -103,7 +103,7 @@ Stores acknowledgement logging and morning follow-up status. :contentReference[o
    - After Hours
    - Late Night
 6. WhatsApp Business Cloud – Send Template Message
-7. Google Sheets – Add Row :contentReference[oaicite:8]{index=8}
+7. Google Sheets – Add Row 
 
 ---
 
@@ -119,7 +119,7 @@ Fields used:
 - Customer name
 - `shippingAddress.phone`
 - Order total
-- Created at timestamp :contentReference[oaicite:9]{index=9}
+- Created at timestamp 
 
 ---
 
@@ -150,6 +150,9 @@ Example output:
     "__IMTINDEX__": 1
   }
 ]
+```
+
+---
 
 ### Module 3 — Tools: Set Multiple Variables (Block 1)
 
@@ -246,7 +249,7 @@ This normalized phone number is then used in the **WhatsApp Cloud API send messa
 
 
 
-## Router Logic
+### Module 5 - Router Logic
 
 The router determines which acknowledgement message should be sent based on the order time in Dubai.
 
@@ -335,20 +338,57 @@ If this branch matches:
 
 ## WhatsApp Message Sending
 
-### Module
+### Module 6 — WhatsApp Business Cloud: Send Template Message
 
-WhatsApp Business Cloud — Send Template Message
+#### Purpose
 
-Purpose:
+Send order acknowledgement to the customer’s WhatsApp number using approved WhatsApp Business templates.
 
-Send order acknowledgement to the customer’s WhatsApp number.
+---
 
-Variables passed:
+#### WhatsApp API Setup
 
-* customer_name_en
-* customer_name_ru
-* order_id_en
-* order_id_ru
+WhatsApp Cloud API configuration for this number is managed in the Meta Developers Console:
+
+https://developers.facebook.com/apps/25486959764339557/use_cases/customize/?use_case_enum=WHATSAPP_BUSINESS_MESSAGING&product_route=whatsapp-business&selected_tab=wa-dev-console&business_id=336841861276587
+
+This console is used for:
+
+- configuring the WhatsApp phone number
+- managing API tokens
+- testing message delivery
+- webhook configuration
+
+---
+
+#### Template Management
+
+All WhatsApp message templates and template performance statistics are managed in Meta Business Manager:
+
+https://business.facebook.com/latest/whatsapp_manager/message_templates/?business_id=336841861276587&tab=message-templates&filters=%7B%22date_range%22%3A7%2C%22language%22%3A[]%2C%22quality%22%3A[]%2C%22search_text%22%3A%22%22%2C%22status%22%3A[%22APPROVED%22%2C%22IN_APPEAL%22%2C%22PAUSED%22%2C%22PENDING%22%2C%22REJECTED%22]%2C%22tag%22%3A[]%7D&nav_ref=whatsapp_manager&asset_id=1384757296311650
+
+Templates must be approved before they can be used by the WhatsApp Cloud API.
+
+---
+
+#### Templates Used in This Scenario
+
+- Work Hours template
+- After Hours template
+- Late Night template
+
+---
+
+#### Template Variables
+
+Variables passed from the automation scenario:
+
+- `customer_name_en`
+- `customer_name_ru`
+- `order_id_en`
+- `order_id_ru`
+
+These variables are dynamically injected into the WhatsApp template when the message is sent.
 
 ---
 
@@ -476,18 +516,16 @@ https://wa.me/971523706376
 
 ---
 
-## Logging
-
-### Module
-
-Google Sheets — Add Row
+### Module 7 - Logging - Google Sheets — Add Row
 
 Purpose:
 
 Record acknowledgement events for auditing and follow-up.
 
-Sheet used:
+Google Sheet 
+https://docs.google.com/spreadsheets/d/1H6gflP7fJJy9Q8v7GUEUKIXCsbhwzPDu4Z7zZGuWbM4/edit?gid=0#gid=0
 
+Sheet used:
 `orders_acknowledged`
 
 Columns:
@@ -506,13 +544,74 @@ Columns:
 
 ### Example Output — Add Row
 
+#### Google Sheets Add Row — Work Hours (output sample)
+
 ```json
-{
-  "spreadsheetId": "1H6gflP7fJJy9Q8v7GUEUKIXCsbhwzPDu4Z7zZGuWbM4",
-  "updatedRange": "Sheet1!A26:G26",
-  "updatedRows": 1
-}
+[
+  {
+    "spreadsheetId": "1H6gflP7fJJy9Q8v7GUEUKIXCsbhwzPDu4Z7zZGuWbM4",
+    "tableRange": "Sheet1!A1:G25",
+    "updates": {
+      "spreadsheetId": "1H6gflP7fJJy9Q8v7GUEUKIXCsbhwzPDu4Z7zZGuWbM4",
+      "updatedRange": "Sheet1!A26:G26",
+      "updatedRows": 1,
+      "updatedColumns": 7,
+      "updatedCells": 7
+    },
+    "sheetName": "Sheet1",
+    "rowNumber": 26
+  }
+]
 ```
+
+---
+
+#### Google Sheets Add Row — After Hours (output sample)
+
+```json
+[
+  {
+    "spreadsheetId": "1H6gflP7fJJy9Q8v7GUEUKIXCsbhwzPDu4Z7zZGuWbM4",
+    "tableRange": "Sheet1!A1:G21",
+    "updates": {
+      "spreadsheetId": "1H6gflP7fJJy9Q8v7GUEUKIXCsbhwzPDu4Z7zZGuWbM4",
+      "updatedRange": "Sheet1!A22:G22",
+      "updatedRows": 1,
+      "updatedColumns": 7,
+      "updatedCells": 7
+    },
+    "sheetName": "Sheet1",
+    "rowNumber": 22
+  }
+]
+```
+
+---
+
+#### Google Sheets Add Row — Late Hours (output sample)
+
+```json
+[
+  {
+    "spreadsheetId": "1H6gflP7fJJy9Q8v7GUEUKIXCsbhwzPDu4Z7zZGuWbM4",
+    "tableRange": "Sheet1!A1:G24",
+    "updates": {
+      "spreadsheetId": "1H6gflP7fJJy9Q8v7GUEUKIXCsbhwzPDu4Z7zZGuWbM4",
+      "updatedRange": "Sheet1!A25:G25",
+      "updatedRows": 1,
+      "updatedColumns": 6,
+      "updatedCells": 6
+    },
+    "sheetName": "Sheet1",
+    "rowNumber": 25
+  }
+]
+```
+
+### Router Decision Snapshot
+
+Store example of decision result for documentation: - order_hour: 14 - matched_branch: Work Hours - template_sent: work_hours_template
+This ensures that later we can fully reconstruct logic without relying on memory.
 
 ---
 
