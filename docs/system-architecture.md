@@ -17,3 +17,15 @@ JSON Parser
 Iterator  
 ↓  
 Airtable Dataset
+
+## Pipeline Diagram
+
+```mermaid
+flowchart TD
+
+A[Customer Messages] --> B[Conversation Extraction]
+B --> C[Make Automation]
+C --> D[OpenAI Classification]
+D --> E[JSON Parser]
+E --> F[Airtable Dataset]
+```
