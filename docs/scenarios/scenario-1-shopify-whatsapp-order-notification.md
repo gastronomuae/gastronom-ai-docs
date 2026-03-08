@@ -280,7 +280,11 @@ formatDate(1.Created at; H; Asia/Dubai) < 18
 Explanation:
 
 * `formatDate(1.Created at; H; Asia/Dubai)` extracts the order hour
-* `3.value (B)` is the `work_start` value retrieved from Google Sheets
+* `3.value (B) represents the `work_start` value retrieved from Google Sheets.
+   Module 3 (Google Sheets – Search Rows) returns the configuration row:
+   setting = work_start
+   value = 9
+   Column B contains the hour value used in the router filter.
 * `18` currently represents the hard-coded work_end boundary
 
 If this branch matches:
@@ -314,7 +318,7 @@ If this branch matches:
 
 ### Branch 3 — Late Night
 
-Fallback route.
+Default router fallback route.
 
 Condition:
 
@@ -615,11 +619,14 @@ This ensures that later we can fully reconstruct logic without relying on memory
 
 ---
 
-## Technical Snapshot
+## Scenario Technical Summary
 
 Scenario Name in Make:
 
-Integration Shopify, Google Sheets
+Integrations:
+- Shopify
+- Google Sheets
+- WhatsApp Cloud API
 
 Schedule:
 
