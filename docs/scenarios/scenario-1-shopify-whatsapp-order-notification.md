@@ -154,37 +154,407 @@ Example output:
 ### Module 3 — Tools: Set Multiple Variables (Block 1)
 
 Purpose:
-- normalize phone number
-- store order fields into variables
 
-Variables typically set here:
-- normalized_phone
-- order_id
-- customer_name
+Normalize the customer phone number and extract key fields from the Shopify order payload.
 
-Phone cleaning formula:
-{{replace(replace(replace(replace(replace(1.shippingAddress.phone; "+"; ""); ; ""); "-"; ""); "("; ""); ")"; "")}}
+Typical variables created:
 
-Output sample:
+* `clean_phone`
+* `order_id`
+* `customer_name`
+
+Phone cleaning formula used in Make:
+
+```make
+replace(
+  replace(
+    replace(
+      replace(
+        replace(1.shippingAddress.phone; "+"; "");
+      " "; "");
+    "-"; "");
+  "("; "");
+")"; "")
+```
+
+Example output:
+
+```json
 [
   {
     "clean_phone": "525970815"
   }
 ]
+```
+
+Explanation:
+
+This block removes formatting characters from the Shopify phone number:
+
+* `+`
+* spaces
+* `-`
+* parentheses
+
+The result is a numeric string that can be normalized into UAE format in the next step.
+
+---
 
 ### Module 4 — Tools: Set Multiple Variables (Block 2)
 
 Purpose:
-Normalize UAE phone format for WhatsApp API compatibility.
 
-Formula:
-{{if(substring(toString(31.clean_phone); 0; 1) = 5; substring(971; 0; 3) + 31.clean_phone;
-if(substring(toString(31.clean_phone); 0; 1) = 0; substring(971; 0; 3) + substring(toString(31.clean_phone); 1;
-length(toString(31.clean_phone))); 31.clean_phone))}}
+Convert the cleaned phone number into a WhatsApp-compatible UAE format.
 
-Output sample:
+The logic ensures the phone number always begins with `971`.
+
+Normalization formula:
+
+```make
+if(
+  substring(toString(31.clean_phone); 0; 1) = 5;
+  "971" & 31.clean_phone;
+  if(
+    substring(toString(31.clean_phone); 0; 1) = 0;
+    "971" & substring(toString(31.clean_phone); 1; length(toString(31.clean_phone)));
+    31.clean_phone
+  )
+)
+```
+
+Explanation:
+
+Case handling:
+
+| Input format   | Result         |
+| -------------- | -------------- |
+| `525970815`    | `971525970815` |
+| `0525970815`   | `971525970815` |
+| `971525970815` | unchanged      |
+
+Example output:
+
+```json
 [
   {
     "normalized_phone": "971525970815"
   }
 ]
+```
+
+This normalized phone number is then used in the **WhatsApp Cloud API send message module**.
+
+
+
+## Router Logic
+
+The router determines which acknowledgement message should be sent based on the order time in Dubai.
+
+Time is extracted using:
+
+```make
+formatDate(1.Created at; H; Asia/Dubai)
+```
+
+Three time buckets exist:
+
+* Work Hours
+* After Hours
+* Late Night
+
+---
+
+### Branch 1 — Work Hours
+
+Condition:
+
+```make
+formatDate(1.Created at; H; Asia/Dubai) >= 3.value (B)
+AND
+formatDate(1.Created at; H; Asia/Dubai) < 18
+```
+
+Explanation:
+
+* `formatDate(1.Created at; H; Asia/Dubai)` extracts the order hour
+* `3.value (B)` is the `work_start` value retrieved from Google Sheets
+* `18` currently represents the hard-coded work_end boundary
+
+If this branch matches:
+
+1. Send WhatsApp **Work Hours template**
+2. Log acknowledgement to Google Sheets
+
+---
+
+### Branch 2 — After Hours
+
+Condition:
+
+```make
+formatDate(1.Created at; H; Asia/Dubai) >= 18
+AND
+formatDate(1.Created at; H; Asia/Dubai) < 21
+```
+
+Explanation:
+
+* Orders placed between **18:00 and 21:00 Dubai time**
+* Both boundaries are currently **hardcoded values**
+
+If this branch matches:
+
+1. Send WhatsApp **After Hours template**
+2. Log acknowledgement to Google Sheets
+
+---
+
+### Branch 3 — Late Night
+
+Fallback route.
+
+Condition:
+
+```make
+formatDate(1.Created at; H; Asia/Dubai) >= 21
+OR
+formatDate(1.Created at; H; Asia/Dubai) < 3.value (B)
+```
+
+Explanation:
+
+* Orders placed **after 21:00** or **before the work_start time**
+* This covers the overnight window
+
+If this branch matches:
+
+1. Send **Night acknowledgement template**
+2. Mark order for follow-up by the **Morning WhatsApp Sender scenario**
+
+---
+
+## WhatsApp Message Sending
+
+### Module
+
+WhatsApp Business Cloud — Send Template Message
+
+Purpose:
+
+Send order acknowledgement to the customer’s WhatsApp number.
+
+Variables passed:
+
+* customer_name_en
+* customer_name_ru
+* order_id_en
+* order_id_ru
+
+---
+
+### Example Response — Work Hours Send
+
+```json
+{
+  "messaging_product": "whatsapp",
+  "contacts": [
+    {
+      "input": "+971561345294",
+      "wa_id": "971561345294"
+    }
+  ],
+  "messages": [
+    {
+      "id": "wamid.HBgMOTcxNTYxMzQ1Mjk0FQIAERgSOEQxMkUxODhDRDAyNEFFOTFEAA==",
+      "message_status": "accepted"
+    }
+  ]
+}
+```
+
+---
+
+### Example Response — After Hours Send
+
+```json
+{
+  "messaging_product": "whatsapp",
+  "contacts": [
+    {
+      "input": "+971561345294",
+      "wa_id": "971561345294"
+    }
+  ],
+  "messages": [
+    {
+      "id": "wamid.HBgMOTcxNTYxMzQ1Mjk0FQIAERgSMTdBODU4NTk2MUUzOTZFNTY3AA==",
+      "message_status": "accepted"
+    }
+  ]
+}
+```
+
+---
+
+## Templates Used
+
+### Template — Work Hours
+
+English
+
+Hello {{customer_name_en}} 👋
+We received your order {{order_id_en}} on gastronom.ae 🛒
+We will contact you shortly with delivery details.
+
+If you need urgent assistance:
+https://wa.me/971523706376
+
+Thank you 🙏
+
+Russian
+
+Здравствуйте {{customer_name_ru}} 👋
+Мы получили ваш заказ {{order_id_ru}} на gastronom.ae 🛒
+Скоро свяжемся с вами для уточнения деталей доставки.
+
+Если нужна срочная помощь:
+https://wa.me/971523706376
+
+Спасибо 🙏
+
+---
+
+### Template — After Hours
+
+English
+
+Hello {{customer_name_en}} 👋
+We received your order {{order_id_en}} on gastronom.ae 🛒
+We will contact you tomorrow morning to confirm delivery.
+
+If you need urgent assistance:
+https://wa.me/971523706376
+
+Thank you 🙏
+
+Russian
+
+Здравствуйте {{customer_name_ru}} 👋
+Мы получили ваш заказ {{order_id_ru}} на gastronom.ae 🛒
+Свяжемся с вами завтра утром для подтверждения доставки.
+
+Если нужна срочная помощь:
+https://wa.me/971523706376
+
+Спасибо 🙏
+
+---
+
+### Template — Night Follow-Up
+
+English
+
+Good morning {{customer_name_en}} 🌞
+We received your order {{order_id_en}} on gastronom.ae 🛒
+We will contact you shortly with delivery details.
+
+If you need urgent assistance:
+https://wa.me/971523706376
+
+Thank you 🙏
+
+Russian
+
+Доброе утро {{customer_name_ru}} 🌞
+Мы получили ваш заказ {{order_id_ru}} на gastronom.ae 🛒
+Скоро свяжемся с вами для уточнения деталей доставки.
+
+Если нужна срочная помощь:
+https://wa.me/971523706376
+
+Спасибо 🙏
+
+---
+
+## Logging
+
+### Module
+
+Google Sheets — Add Row
+
+Purpose:
+
+Record acknowledgement events for auditing and follow-up.
+
+Sheet used:
+
+`orders_acknowledged`
+
+Columns:
+
+| Column | Field                |
+| ------ | -------------------- |
+| A      | order timestamp      |
+| B      | order id             |
+| C      | customer name        |
+| D      | phone                |
+| E      | acknowledgement time |
+| F      | acknowledgement type |
+| G      | follow-up status     |
+
+---
+
+### Example Output — Add Row
+
+```json
+{
+  "spreadsheetId": "1H6gflP7fJJy9Q8v7GUEUKIXCsbhwzPDu4Z7zZGuWbM4",
+  "updatedRange": "Sheet1!A26:G26",
+  "updatedRows": 1
+}
+```
+
+---
+
+## Technical Snapshot
+
+Scenario Name in Make:
+
+Integration Shopify, Google Sheets
+
+Schedule:
+
+Runs every 15 minutes.
+
+Timezone logic:
+
+```make
+formatDate(1.Created at; H; Asia/Dubai)
+```
+
+Router branches:
+
+1. Work Hours
+2. After Hours
+3. Late Night
+
+Key Shopify fields used:
+
+* name (order number)
+* createdAt
+* shippingAddress.phone
+* totalPriceSet.amount
+* lineItems[].sku
+* lineItems[].quantity
+
+---
+
+## Open Items
+
+The original document highlights several future improvements:
+
+* remove hardcoded router hour values
+* move all hour boundaries to Google Sheets configuration
+* confirm duplicate prevention logic
+* add better error handling
+* validate router logic against real production scenario
