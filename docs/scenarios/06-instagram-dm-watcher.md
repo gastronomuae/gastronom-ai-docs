@@ -29,37 +29,89 @@ This ensures Instagram inquiries are tracked consistently alongside other suppor
 
 # Module 1 – Webhooks – Custom Webhook
 
-The scenario starts when Instagram sends a webhook event for a new Direct Message.
+## Meta Developer Application
 
-Webhook name:
+A Meta Developer application was created to enable access to the Instagram Messaging API.
 
-ig_dm_inbound
+Application details:
+- App Name: direct_messages_in-IG
+- Instagram App ID: 841816832207699
 
-### Webhook Configuration
+The application provides the API access required to:
+- receive Instagram Direct Messages
+- retrieve sender information
+- process messaging events via webhook
+- enable automation workflows.
 
-Callback URL:
-https://hook.eu1.make.com/7kx7f6dolf6eykvkxjqlawvga4xcgepu
+Enabled Meta Use Cases
+The following Meta platform use cases were enabled for the application:
+- Manage messaging & content on Instagram
+- Engage with customers on Messenger from Meta
 
-Verify Token:
-gastronom123
+Test use cases
+- These use cases allow the application to receive and process messaging events originating from Instagram conversations.
 
-Whenever a new Instagram DM is received, Meta sends an event to this webhook which triggers the automation.
+Instagram API Configuration
+- The application was configured using API Setup with Instagram Login.
+- This configuration connects the Instagram Business account to the Meta Developer application and enables the application to interact with Instagram messaging services.
 
----
+Permissions Granted
+The following permissions were enabled for the application:
+- instagram_business_basic
+- instagram_manage_comments
+- instagram_business_manage_messages
+  
+These permissions allow the system to:
+- access the Instagram Business account
+- read incoming Direct Messages
+- retrieve sender information
+- process messaging events from conversations.
 
-## Subscribed Webhook Events
+Webhook Configuration
 
-messages  
-messaging_postbacks
+A webhook endpoint was configured to deliver Instagram messaging events to the automation system.
 
----
+Webhook settings:
+- Callback URL: https://hook.eu1.make.com/7kx7f6dolf6eykvkxjqlawvga4xcgepu 
+- Verify Token: gastronom123
 
-## Connected Facebook Page
+The webhook connects the Meta platform with the Make.com Instagram DM automation scenario.
 
-Page Name: gastronom.uae  
-Page ID: 107318278322469
+Whenever a new Instagram Direct Message is received, Meta sends an event to this webhook endpoint which triggers the automation workflow.
 
----
+Subscribed Webhook Events
+
+The application was subscribed to the following webhook events:
+- messages
+- messaging_postbacks
+
+These events allow the system to detect when:
+- a new Instagram Direct Message is received
+- messaging interactions occur within a conversation.
+  
+Connected Facebook Page
+- The Meta application was connected to the Facebook Page associated with the company Instagram account.
+- Page Name: gastronom.uae
+- Page ID: 107318278322469
+
+This connection allows the webhook to receive messaging events originating from the Instagram Business account.
+
+Access Token Generation
+A Page access token was generated for the connected page.
+The token is used to:
+- authorize API requests
+- enable webhook subscriptions
+- allow the application to interact with messaging endpoints.
+
+App Roles
+The following roles were assigned in the Meta Developer application:
+- Administrator: Vahagn Ohanjanyan
+- Instagram Tester: vohanjanyan
+
+The Instagram tester role allows the messaging integration to be tested while the application remains in development mode.
+
+Integration Result
+With this configuration, all Instagram Direct Messages received by the connected Instagram Business account are automatically delivered to the automation system.
 
 # Message Flow
 
@@ -74,6 +126,19 @@ AI Message Classification
 Router (Important / Non‑Important)  
 ↓  
 Telegram Alert + Airtable Logging
+
+---
+### Captured data includes:
+
+| Field | Description |
+|--------|--------|
+| entry.messaging.timestamp | Message timestamp |
+| entry.messaging.sender.id | Instagram user ID |
+| entry.messaging.message.mid | Unique message ID |
+| entry.messaging.message.text | Message content |
+
+---
+
 
 ---
 
