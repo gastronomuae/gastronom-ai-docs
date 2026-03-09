@@ -1,12 +1,3 @@
-
----
-scenario_id: 04
-scenario_name: telegram_whatsapp_a_reply_routing
-system: make.com
-trigger: telegram bot webhook
-status: active
----
-
 # Scenario 4 — Telegram → WhatsApp A Reply Routing
 
 ## Objective
@@ -59,30 +50,72 @@ Purpose:
 
 Example Output
 
+```json
+[
 {
- "message": {
-  "message_id": 47,
-  "from": {
-   "id": 570449120,
-   "is_bot": false,
-   "first_name": "Vahag",
-   "username": "vohanjanyan"
-  },
-  "reply_to_message": {
-   "message_id": 45,
-   "from": {
-    "is_bot": true
-   },
-   "text": "📩 New WhatsApp Message
-
-👤 WA A: 971561345294
-
-💬 Can you deliver tomorrow at 2pm?"
-  },
-  "text": "sure!"
- }
+"message": {
+"message_id": 47,
+"from": {
+"id": 570449120,
+"is_bot": false,
+"first_name": "Vahag",
+"username": "vohanjanyan"
+},
+"chat": {
+"id": -5133624518,
+"title": "Gastronom cusomer support",
+"type": "group",
+"all_members_are_administrators": true,
+"accepted_gift_types": {
+"unlimited_gifts": false,
+"limited_gifts": false,
+"unique_gifts": false,
+"premium_subscription": false,
+"gifts_from_channels": false
 }
-
+},
+"date": "2026-02-19T16:48:52.000Z",
+"reply_to_message": {
+"message_id": 45,
+"from": {
+"id": 8135508887,
+"is_bot": true,
+"first_name": "gastronom.support",
+"username": "gastronomae_bot"
+},
+"chat": {
+"id": -5133624518,
+"title": "Gastronom cusomer support",
+"type": "group",
+"all_members_are_administrators": true,
+"accepted_gift_types": {
+"unlimited_gifts": false,
+"limited_gifts": false,
+"unique_gifts": false,
+"premium_subscription": false,
+"gifts_from_channels": false
+}
+},
+"date": 1771519562,
+"text": "📩 New WhatsApp Message\n\n👤 WA A: 971561345294\n\n💬 Can you deliver tomorrow at 2pm?"
+},
+"text": "sure!",
+"attachment": {
+"type": "OtherOrNone"
+}
+},
+"update_id": 763321569,
+"channel_post": null,
+"inline_query": null,
+"callback_query": null,
+"edited_message": null,
+"my_chat_member": null,
+"business_message": null,
+"pre_checkout_query": null,
+"edited_channel_post": null
+}
+]
+```
 ---
 
 # Filter — Only Replies to Bot
@@ -156,7 +189,7 @@ Purpose:
 Send the Telegram reply back to the original WhatsApp customer.
 
 Example Output
-
+```json
 {
  "messaging_product": "whatsapp",
  "contacts": [
@@ -171,7 +204,7 @@ Example Output
   }
  ]
 }
-
+```
 ---
 
 # Module 4 — Airtable: Create Record
@@ -208,6 +241,7 @@ label_source = human_labeled
 
 Example Record
 
+```json
 {
  "conversation_id": "106",
  "wa_number": "971561345294",
@@ -217,7 +251,7 @@ Example Record
  "agent_name": "Vahag",
  "conversation_status": "open"
 }
-
+```
 ---
 
 # Logging Logic
