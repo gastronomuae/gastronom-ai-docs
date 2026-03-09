@@ -1,12 +1,3 @@
-
----
-scenario_id: 05
-scenario_name: email_ai_classification_router
-system: make.com
-trigger: email watcher
-status: active
----
-
 # Scenario 5 — Email Watcher (AI Classification)
 
 ## Objective
@@ -213,10 +204,9 @@ unknown
 null
 - Returned when the message is not classified as supplier_prospect.
 
-
+---
 PROMPT
 
-```json
 Classify the email below.
 
 Return exactly 6 values separated by | in this order:
@@ -368,7 +358,7 @@ From:
 Body:
 {{first(split(2.text; "\nOn "))}}
 
-```
+
 
 ---
 
@@ -378,13 +368,24 @@ Purpose
 
 Send only important messages to Telegram.
 
-Condition
 
-broad_category = support  
-OR  
-broad_category = b2b_sales  
-OR  
-(broad_category = supplier_prospect AND supplier_region = priority_region)
+Condition:
+  first(split(7.Result; "|"))
+  Equal to
+  support
+OR
+  {{first(split(7.result; "|"))}}
+  Equal to
+  b2b_sales
+OR 
+  {{first(split(7.result; "|"))}}
+  Equal to
+  supplier_prospect
+
+AND
+  {{get(split(7.result; "|"); 6)}}
+  Equal to
+  priority_region
 
 ---
 
@@ -398,11 +399,11 @@ Message format
 
 📧 CUSTOMER EMAIL
 
-From: {{sender}}  
-Subject: {{subject}}
+From: {{2.Sender: Email address}}
+Subject: {{2.Subject}}
 
 Message:
-{{first_250_characters_of_email}}
+{{substring(trim(toString(ifempty(2.text; ))); 0; 250)}}
 
 ---
 
@@ -422,42 +423,60 @@ Create a structured dataset for analytics and AI training.
 
 ---
 
-# Field Mapping — INBOUND
+## Field Mapping — INBOUND
 
-conversation_id → message-id  
-message_id_external → message-id  
-message_direction → inbound  
-message_source → email  
-channel → email  
-message_text → first trimmed section of email  
-timestamp_utc → parsed email date  
+| Field | Mapping |
+|------|--------|
+| **conversation_id** | `2.Headers → basic → message-id` |
+| **message_id_external** | `2.Headers → basic → message-id` |
+| **message_direction** | `inbound` |
+| **message_source** | `email` |
+| **channel** | `email` |
+| **wa_number** | `empty` |
+| **message_text** | `{{if(length(first(split(2.text; "\nOn "))) > 250; substring(first(split(2.text; "\nOn ")); 0; 250) + "..."; first(split(2.text; "\nOn ")) )}}` |
+| **timestamp_utc** | `formatDate(parseDate(2.Date; "X"); "YYYY-MM-DDTHH:mm:ss.SSS[Z]"; "UTC")` |
+| **broad_category** | `first(split(7.Result; "|"))` |
+| **issue_category** | `trim(get(split(7.Result; "|"); 2))` |
+| **priority** | `trim(get(split(7.Result; "|"); 3))` |
+| **confidence_score** | `trim(get(split(7.Result; "|"); 4))` |
+| **resolution_status** | `unresolved` |
+| **conversation_status** | `open` |
+| **conversation_hash** | `if(get(split(7.result; "|"); 5) != "null"; lower(get(split(7.result; "|"); 5)); lower(2.from.address))` |
 
-AI fields
+### conversation_id
 
-broad_category → OpenAI result  
-issue_category → OpenAI result  
-priority → OpenAI result  
-confidence_score → OpenAI result  
+Used to group inbound and outbound messages belonging to the same conversation thread.
 
-Status fields
+For emails this is derived from the `message-id` header.
 
-resolution_status → unresolved  
-conversation_status → open
+While each email technically has its own `message-id`, the system uses this field to associate replies within the same exchange.
 
-conversation_hash
+### message_id_external
 
-Uses extracted customer email or sender email.
+Unique identifier of the specific email message event received from the mailbox.
+
+### conversation_hash
+
+Used to identify the customer across messages. Normally uses the sender email address.
+
+However when emails are sent via the Shopify contact form the header sender is:
+
 
 ---
 
-# Field Mapping — OUTBOUND
+## Field Mapping — OUTBOUND
 
-conversation_id → message-id  
-message_direction → outbound  
-message_source → email  
-channel → email  
-message_text → trimmed email content  
-timestamp_utc → email date  
+| Field | Mapping |
+|------|--------|
+| **conversation_id** | `2.Headers → basic → message-id` |
+| **message_id_external** | `2.Headers → basic → message-id` |
+| **message_direction** | `outbound` |
+| **message_source** | `email` |
+| **channel** | `email` |
+| **message_text** | `{{first(split(2.text; "\nOn "))}}` |
+| **timestamp_utc** | `formatDate(parseDate(2.Date; "X"); "YYYY-MM-DDTHH:mm:ss.SSS[Z]"; "UTC")` |
+| **resolution_status** | `unresolved` |
+| **conversation_status** | `open` |
 
 No AI classification fields used.
 
