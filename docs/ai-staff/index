@@ -1,0 +1,13 @@
+# AI Staff Documentation
+
+This section describes the architecture, governance, and roadmap for the Gastronom AI support assistant.
+
+The AI Staff system is responsible for automating customer communication, monitoring operations, and assisting business processes while operating under strict governance and human supervision.
+
+---
+
+## Documents
+
+- [Vision](vision.md)
+- [Roadmap](roadmap.md)
+- [Governance](governance.md)
