@@ -1,12 +1,3 @@
-
----
-scenario_id: 03
-scenario_name: whatsapp_number_a_telegram_routing
-system: make.com
-trigger: whatsapp cloud api webhook
-status: active
----
-
 # Scenario 3 — WhatsApp Number A → Telegram Routing
 
 ## Purpose
@@ -113,21 +104,19 @@ Ensure only **customer text messages** trigger the automation.
 Filter Conditions:
 
 ```
-value.messages[0].type = text
+{{4.entry[].changes[].value.messages[].text.body}} = EXISTS
 ```
 
-Optional additional protection:
-
-```
-value.messages exists
-```
 
 This prevents triggering on:
 
 - delivery receipts
 - message status updates
-- template acknowledgements
-- system events
+- read receipts
+- webhook status callbacks
+- system / non-text events
+
+This prevents creation of empty Airtable rows and eliminates duplicate executions triggered by WhatsApp status webhooks.
 
 ---
 
@@ -137,18 +126,31 @@ Purpose:
 
 Split the workflow into **two parallel processing paths**:
 
-Branch 1 → Send message to Telegram support group  
+Branch 1 → Send message to Telegram support group 
+
+Filter Conditions: Message only filter
+
+```
+{{4.entry[].changes[].field}} = MESSAGES
+```
+AND
+
+```
+{{4.entry[].changes[].value.messages}} = EXISTS
+```
 Branch 2 → Log structured conversation record in Airtable
 
 This allows both **real-time operator visibility** and **AI-ready message storage**.
 
 ---
 
-# Module 4 — Telegram Bot: Send Text
+# Module 4 — Telegram Bot: Send Text (BRANCH 1)
 
 Purpose:
 
 Forward the incoming customer message to the **internal Telegram support group**.
+
+Telegram group chat ID: -5133624518
 
 Message format sent to Telegram:
 
@@ -162,65 +164,50 @@ Message:
 Здравствуйте, у вас есть Боржоми?
 ```
 
-Optional enhanced format:
-
-```
-📩 WhatsApp
-
-Customer: +971525970815
-Name: vohanjanyan
-
-Message:
-Здравствуйте, у вас есть Боржоми?
-```
-
 This enables operators to see incoming messages instantly.
 
----
+This includes:
+- Sender phone (wa_id)
+- Message text content
 
-# Module 5 — Airtable: Create Record (Inbound Log)
+If later you support media:
+- Add media URL
+- Add message type
 
-Table:
-
-`whatsapp_messages`
-
-Purpose:
-
-Store inbound messages in a structured format for:
-
-- AI training
-- conversation history
-- analytics
-- support tracking
-
-Fields stored:
-
-| Field | Value |
-|-----|-----|
-timestamp | message timestamp |
-phone | customer phone |
-name | WhatsApp profile name |
-message_text | message body |
-channel | whatsapp |
-direction | inbound |
-status | new |
-
-Example record:
+Example output:
 
 ```json
+[
 {
-  "phone": "971525970815",
-  "name": "vohanjanyan",
-  "message_text": "Здравствуйте, у вас есть Боржоми?",
-  "channel": "whatsapp",
-  "direction": "inbound",
-  "status": "new"
+"message_id": 48,
+"from": {
+"id": 8135508887,
+"is_bot": true,
+"first_name": "gastronom.support",
+"username": "gastronomae_bot"
+},
+"chat": {
+"id": -5133624518,
+"title": "Gastronom cusomer support",
+"type": "group",
+"all_members_are_administrators": true,
+"accepted_gift_types": {
+"unlimited_gifts": false,
+"limited_gifts": false,
+"unique_gifts": false,
+"premium_subscription": false,
+"gifts_from_channels": false
 }
+},
+"date": 1771682555,
+"text": "📩 New WhatsApp Message\n\n👤 WA A: 971561345294\n\n💬 Thanks. When expect delivery?"
+}
+]
 ```
 
 ---
 
-# Module 6 — Webhook Response
+# Module 5 — Webhook Response (BRANCH 1)
 
 Purpose:
 
@@ -228,43 +215,90 @@ Return **HTTP 200 OK** to Meta so the webhook event is acknowledged.
 
 This prevents retries from the WhatsApp Cloud API.
 
+Verification Logic
+
+```
+{{if(4.`hub.verify_token` = "gastronom2026"; 4.`hub.challenge`; """ """)}}
+```
+
 Response body example:
 
 ```
 EVENT_RECEIVED
 ```
+Purpose:
+- Handle Meta webhook verification challenge
+- Return challenge string when verify token matches
+- Required during initial webhook setup
+
+What This Scenario Currently Does
+
+✅ Receives inbound WA messages 
+✅ Filters only message events 
+✅ Forwards to Telegram group 
+✅ Responds 200 OK to Meta 
+✅ Handles webhook verification
+
+
+What It Does NOT Do (Yet)
+- No AI classification
+- No order lookup
+- No auto-replies
+- No retry handling
+
+It is a pure forwarder.
+
+Important Technical Note
+
+You are using:
+
+Custom Webhook module NOT WhatsApp “Watch messages” module
+
+This means:
+- You have full payload control
+- You must maintain webhook verification logic
+- You control filtering manually
+
+Which is actually good for long-term AI expansion.
+
 
 ---
 
-# Control Logic
+# Module 6 — Airtable: Create Record (Inbound Log) (BRANCH 2)
 
-Key rules:
+Base: AI Staff – Conversation Engine Table: conversation_log
 
-• Only inbound text messages are processed  
-• Messages are forwarded to Telegram instantly  
-• All messages are stored in Airtable  
-• No reply is sent automatically in this scenario
+Purpose: 
+Create structured inbound message records for analytics, AI training, and conversation lifecycle tracking.
 
----
+Data Handling Principles
+- Only messages containing text.body are logged
+- Status events (value.statuses[]) are ignored
+- Each inbound message creates exactly one Airtable row
+- conversation_hash = normalized wa_number
+- conversation_started_at = inbound message timestamp (UTC)
+  
+Example record:
 
-# System Components Used
-
-| Component | Purpose |
-|------|------|
-WhatsApp Cloud API | Receive messages |
-Make.com | Automation workflow |
-Telegram Bot | Internal support notifications |
-Airtable | Conversation logging |
-
----
-
-# Outcome
-
-This scenario creates the **core messaging bridge** between:
-
-Customer WhatsApp  
-→ Make automation  
-→ Telegram support team  
-→ AI-ready conversation database
-
-It forms the **foundation for the future AI customer support system**.
+```json
+[ { "conversation_id": "wamid.HBgMOTcxNTYxMzQ1Mjk0FQIAEhgUM0E1RjUxNUE0RjZCMDkyRkVDRkEA",
+  "wa_number": "971561345294",
+  "message_id_external": "wamid.HBgMOTcxNTYxMzQ1Mjk0FQIAEhgUM0E1RjUxNUE0RjZCMDkyRkVDRkEA",
+  "message_direction": "inbound",
+  "message_source": "whatsapp_A",
+  "message_text": "Can you deliver after 5pm?",
+  "timestamp_utc": "2026-03-05T07:39:29.000Z",
+  "resolution_status": "unresolved",
+  "conversation_status": "open",
+  "issue_category": "order_status",
+  "confi dence_score": 1,
+  "channel": "whatsapp_A",
+  "conversation_started_at": "2026-03-05T07:39:29.000Z",
+  "conversation_hash": "971561345294",
+  "Priority": "high",
+  "broad_category": "support",
+  "label_source": "system_default",
+  "id": "recvxte3kd6bsCGZr",
+  "createdTime": "2026-03-05T11:39:32.000Z" }
+]
+```
