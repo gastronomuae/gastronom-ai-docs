@@ -137,7 +137,53 @@ Telegram Alert + Airtable Logging
 | entry.messaging.message.mid | Unique message ID |
 | entry.messaging.message.text | Message content |
 
+Example Output
+
+```json
+[
+    {
+        "object": "instagram",
+        "entry": [
+            {
+                "time": 1772631465118,
+                "id": "17841448648228773",
+                "messaging": [
+                    {
+                        "sender": {
+                            "id": "1825206454632684"
+                        },
+                        "recipient": {
+                            "id": "17841448648228773"
+                        },
+                        "timestamp": 1772631463969,
+                        "message": {
+                            "mid": "aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDQ4NjQ4MjI4NzczOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI1ODczMzMxNzg5NTkwODExNTozMjY5OTI3ODk1Mjg0OTI4MDEwNTk4NDc4NzA4ODQwODU3NgZDZD",
+                            "text": "Do you have natakhtari lemonade?"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+]
+
+```
+
 ---
+Webhook Message Filter
+
+After the Webhooks – Custom Webhook trigger, a filter is applied to ensure the scenario only processes events that contain actual message text.
+
+This prevents the automation from triggering on other Instagram webhook events such as delivery confirmations, reactions, or typing indicators.
+
+Filter Label: Instagram DM – Has text
+Condition: 1.entry[].messaging[].message.text = Exists
+
+Purpose
+- Ensures the automation runs only for real Instagram messages
+- Prevents unnecessary processing of non-message webhook events
+- Reduces OpenAI and automation operations usage
+- Keeps Airtable records limited to actual customer messages
 
 
 ---
@@ -154,6 +200,20 @@ Tools – Set Multiple Variables
 | message_text | Raw message |
 | timestamp | formatDate(parseDate(timestamp/1000,"X"),"DD-MM-YYYY","Asia/Dubai") |
 
+Example Output
+
+```json
+[
+    {
+        "message_text": "Do you have natakhtari lemonade?",
+        "sender_id": "1825206454632684",
+        "message_id": "aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDQ4NjQ4MjI4NzczOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI1ODczMzMxNzg5NTkwODExNTozMjY5OTI3ODk1Mjg0OTI4MDEwNTk4NDc4NzA4ODQwODU3NgZDZD",
+        "timestamp": "04-03-2026"
+    }
+]
+
+```
+
 ---
 
 # Module 3 – Instagram API Enrichment
@@ -169,6 +229,43 @@ Returns:
 | username | Instagram username |
 | profile_pic | Profile picture |
 | name | Display name |
+
+```json
+[
+    {
+        "data": {
+            "username": "vohanjanyan",
+            "id": "1825206454632684"
+        },
+        "headers": {
+            "etag": "\"97309fbd2bee1ebffbb8da9c8aa31e411def1241\"",
+            "content-type": "application/json",
+            "vary": "Origin",
+            "x-fb-aed": "764",
+            "x-ad-api-version-warning": "The call has been auto-upgraded to v25.0 as v19.0 has been deprecated.",
+            "cross-origin-resource-policy": "cross-origin",
+            "x-app-usage": "{\"call_count\":1,\"total_cputime\":0,\"total_time\":3}",
+            "access-control-allow-origin": "*",
+            "facebook-api-version": "v25.0",
+            "strict-transport-security": "max-age=15552000; preload",
+            "pragma": "no-cache",
+            "cache-control": "private, no-cache, no-store, must-revalidate",
+            "expires": "Sat, 01 Jan 2000 00:00:00 GMT",
+            "x-fb-request-id": "AwgjesH6rmQQp3hxcA__ZUD",
+            "x-fb-trace-id": "Cb+uI0bUHiQ",
+            "x-fb-rev": "1034469067",
+            "x-fb-debug": "ge7VDrk9kaIhQIOK5DzGBNuhYYlyvyO8MHQEipM7FCV1573E4P1fC0MhCGI2aWFT4tVs0gpW+idScgE710OBtw==",
+            "date": "Wed, 04 Mar 2026 13:37:46 GMT",
+            "x-fb-connection-quality": "EXCELLENT; q=0.9, rtt=17, rtx=0, c=10, mss=1380, tbw=3458, tp=-1, tpl=-1, uplat=603, ullat=0",
+            "alt-svc": "h3=\":443\"; ma=86400",
+            "connection": "keep-alive",
+            "content-length": "50"
+        },
+        "statusCode": 200
+    }
+]
+
+```
 
 ---
 
@@ -219,16 +316,163 @@ address_change
 other
 
 ---
+## Prompt
+
+Classify the Instagram direct message below.
+
+Return exactly 4 values separated by | in this order:
+
+broad_category|issue_category|priority|confidence
+
+broad_category (choose exactly one):
+
+support
+supplier_prospect
+b2b_sales
+marketing
+spam
+other
+
+Definitions:
+
+b2b_sales = A business buyer (restaurant, hotel, nursery, catering, retail shop, distributor, reseller) asking to purchase our products, request wholesale price list, MOQ, delivery terms, or partnership to BUY from us.
+
+supplier_prospect = Producer, factory, exporter, or brand offering PHYSICAL GOODS supply to us, asking to distribute their products or send catalog / commercial offer.
+
+support = Customer inquiry related to product availability, order status, delivery, payment, refund, complaint, store location, working hours, or any retail purchase.
+
+marketing = Service providers, agencies, influencers, SEO, advertising offers, collaboration proposals, digital marketing, affiliate offers, traffic generation.
+
+spam = Scam, crypto, suspicious links, fake courier warning, impersonation, irrelevant bulk messages.
+
+other = Legitimate message that does not clearly fit above (e.g., job inquiry, greeting without context).
+
+
+--- IMPORTANT CLASSIFICATION RULES ---
+
+
+CONTEXT CONSISTENCY RULE
+
+If the message appears to be part of an ongoing conversation, the issue_category should normally remain the same as the original customer inquiry.
+
+Outbound replies from the store should inherit the issue_category of the customer message they are answering unless the topic clearly changes.
+
+Do not change issue_category unless the customer explicitly introduces a new topic.
+
+If the message contains only a greeting (e.g., "Hi", "Hello", "Здравствуйте") without any additional question or context → other | null | low.
+
+If a greeting message contains an additional question about products, delivery, orders, or payment in the same message, ignore the greeting and classify based on the question.
+
+- If asking about job / вакансии → other | null | low
+- If asking about product availability → support | product_question
+- If asking about order delay → support | order_status
+- If complaining about delivery or wrong product → support | complaint
+- If business wants to BUY from us → b2b_sales (priority MUST be high)
+- If producer wants to SELL goods to us → supplier_prospect
+
+Do not use "other" if the message clearly relates to a retail purchase or customer support.
+
+If the message relates to:
+• product availability
+• delivery
+• payment
+• order timing
+• order confirmation
+• store information
+
+it must be classified as support with the appropriate issue_category.
+
+DELIVERY / SERVICE QUESTIONS
+
+Questions about delivery availability, delivery areas, shipping coverage, or whether delivery works in a specific location are NOT product questions.
+
+Examples:
+"Do you deliver to Dubai Marina?"
+"Is delivery available today?"
+"Do you deliver to Alain?"
+"How long does delivery take?"
+
+These must be classified as:
+
+support | order_status
+
+issue_category (only if broad_category = support):
+
+order_status
+payment
+product_question
+complaint
+refund
+cancellation
+address_change
+other
+
+Use the same issue_category across the conversation whenever possible unless the topic clearly changes.
+
+
+Clarification:
+
+order_status also includes questions about delivery time, shipping estimate, when an order will arrive, delivery delays, or requests for an estimated delivery date.
+
+If broad_category is NOT support, issue_category MUST be null.
+Never return an issue_category value for non-support messages.
+
+
+OUTBOUND MESSAGE CLASSIFICATION
+
+If the message is written by the store (agent reply), use the same issue_category as the customer's message that triggered the reply unless the reply introduces a completely different topic.
+
+Example:
+
+Customer: "Do you deliver to Dubai Marina?"
+Store: "Yes, delivery is available."
+
+Both messages should use:
+support | order_status
+
+
+priority rules:
+
+If broad_category = b2b_sales → high.
+If broad_category = supplier_prospect → normal (high only if clearly urgent/large-scale).
+If support AND issue_category in (complaint, refund) → high.
+If support other → normal.
+If marketing → low.
+If spam → low.
+If other → low.
+
+confidence:
+Return a number between 0.0 and 1.0.
+
+Return only the pipe-separated line. No explanation.
+
+Message:
+{{1.entry[].messaging[].message.text}}
+
+
+---
 
 # Module 6 – Router
 
 Messages are split into two processing routes.
 
+After the OpenAI classification module, a Router is used to split the scenario into two processing paths based on the AI-detected message category.
+
+The purpose of this routing step is to ensure that important messages requiring human attention trigger alerts, while lower-priority or irrelevant messages are simply logged for record keeping.
+
+Why Routing Is Used
+
+Not every Instagram DM requires immediate action. The AI classification determines whether a message is important for the business (customer support, sales, supplier inquiries) or non-critical (general chatter, marketing outreach, spam, etc.).
+
+
 ### Important DM
 
-support  
-b2b_sales  
-supplier_prospect
+  first(split(7.Result; "|")) = support
+OR
+  first(split(7.Result; "|")) = b2b_sales
+OR
+  first(split(7.Result; "|")) = supplier_prospect
+
 
 These trigger Telegram notifications.
 
@@ -240,17 +484,28 @@ other
 
 These are logged only.
 
+This route is configured as the fallback route, meaning it will process any messages that do not match the Important DM Filter conditions.
+
 ---
 
 # Module 7 – Telegram Notification
+
+For messages classified as important, the scenario sends a notification to the internal support Telegram group.
+This allows the team to quickly see and respond to relevant Instagram inquiries without needing to monitor Instagram directly.
+The Telegram message includes key information extracted and enriched earlier in the scenario.
+
+Message Structure:
+
 
 Message format:
 
 📩 Instagram DM
 
-👤 {{sender_handle}}  
-💬 {{message_text}}  
-📅 {{timestamp}}
+👤 {{15.sender_handle}}
+💬 {{6.message_text}}  
+📅 {{6.timestamp}}
+
+Parse Mode: HTML disabled (plain text recommended)
 
 ---
 
@@ -290,12 +545,28 @@ Purpose:
 
 ## Example Record
 
-{
-  "conversation_id": "1825206454632684",
-  "message_direction": "inbound",
-  "message_source": "instagram",
-  "message_text": "Do you have natakhtari lemonade?",
-  "issue_category": "product_question",
-  "priority": "normal",
-  "confidence_score": 0.82
-}
+```json
+[
+    {
+        "conversation_id": "1825206454632684",
+        "message_id_external": "aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDQ4NjQ4MjI4NzczOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI1ODczMzMxNzg5NTkwODExNTozMjY5OTI3ODk1Mjg0OTI4MDEwNTk4NDc4NzA4ODQwODU3NgZDZD",
+        "message_direction": "inbound",
+        "message_source": "instagram dm",
+        "message_text": "Do you have natakhtari lemonade?",
+        "timestamp_utc": "2026-03-03T20:00:00.000Z",
+        "resolution_status": "unresolved",
+        "conversation_status": "open",
+        "issue_category": "product_question",
+        "confidence_score": 0.82,
+        "channel": "instagram",
+        "conversation_started_at": "2026-03-03T20:00:00.000Z",
+        "conversation_hash": "1825206454632684",
+        "Priority": "normal",
+        "broad_category": "support",
+        "id": "recbQ7svsXqxi4kgd",
+        "createdTime": "2026-03-04T13:37:50.000Z"
+    }
+]
+
+
+```
