@@ -3,7 +3,7 @@ scenario_id: 03
 scenario_name: whatsapp_to_telegram_routing
 system: make.com
 trigger: webhook (WhatsApp Cloud API)
-owner: gastronom
+owner: Vahagn Ohanjanyan
 status: active
 last_updated: 2026-03-10
 ---
