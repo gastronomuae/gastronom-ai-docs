@@ -147,6 +147,22 @@ supplier_prospect → issue_category = null
 marketing → issue_category = null  
 spam → issue_category = null
 
+## supplier_region
+
+Region classification for supplier_prospect messages.
+
+This field is used only when:
+
+broad_category = supplier_prospect
+
+Allowed values:
+
+priority_region  
+other_region  
+unknown  
+
+If broad_category ≠ supplier_prospect, the field must be null.
+
 ## priority
 
 Indicates the operational urgency of the message.
