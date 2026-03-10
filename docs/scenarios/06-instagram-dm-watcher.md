@@ -359,7 +359,7 @@ Outbound replies from the store should inherit the issue_category of the custome
 
 Do not change issue_category unless the customer explicitly introduces a new topic.
 
-If the message contains only a greeting (e.g., "Hi", "Hello", "Здравствуйте") without any additional question or context → other | null | low.
+If the message contains only a greeting (e.g., "Hi", "Hello", "Здравствуйте") without any additional question or context → other | null | low | 0.80
 
 If a greeting message contains an additional question about products, delivery, orders, or payment in the same message, ignore the greeting and classify based on the question.
 
@@ -382,23 +382,26 @@ If the message relates to:
 
 it must be classified as support with the appropriate issue_category.
 
+
 DELIVERY / SERVICE QUESTIONS
 
-Questions about delivery availability, delivery areas, shipping coverage, or whether delivery works in a specific location are NOT product questions.
+Questions about delivery availability, delivery areas, shipping coverage, or whether delivery works in a specific location must be classified as:
+
+support | delivery_area
 
 Examples:
 "Do you deliver to Dubai Marina?"
-"Is delivery available today?"
 "Do you deliver to Alain?"
-"How long does delivery take?"
+"Is delivery available today?"
+"Do you deliver to JVC?"
 
-These must be classified as:
-
-support | order_status
+These questions are about service coverage, not order tracking.
 
 issue_category (only if broad_category = support):
 
 order_status
+delivery_area
+order_modification
 payment
 product_question
 complaint
@@ -416,6 +419,18 @@ order_status also includes questions about delivery time, shipping estimate, whe
 
 If broad_category is NOT support, issue_category MUST be null.
 Never return an issue_category value for non-support messages.
+
+ORDER MODIFICATION QUESTIONS
+
+Requests to change an existing order must be classified as:
+
+support | order_modification
+
+Examples:
+"Can you change my order?"
+"I want to remove one item"
+"Please change delivery time"
+"Add one more product to my order"
 
 
 OUTBOUND MESSAGE CLASSIFICATION
@@ -448,7 +463,6 @@ Return only the pipe-separated line. No explanation.
 
 Message:
 {{1.entry[].messaging[].message.text}}
-
 
 ---
 
