@@ -25,7 +25,7 @@ Every AI decision must follow this structure:
 {
   "intent": "",
   "action": "",
-  "confidence": 0-100,
+  "confidence": 0.0-1.0,
   "reason": ""
 }
 ```
@@ -38,7 +38,7 @@ This format ensures decisions remain explainable and traceable.
 
 AI must escalate to human operators when:
 
-- Confidence score < 70
+- Confidence score < 0.7
 - Customer complaints
 - Refund requests
 - Legal inquiries
