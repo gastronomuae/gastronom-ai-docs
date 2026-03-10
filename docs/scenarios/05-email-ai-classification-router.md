@@ -32,6 +32,10 @@ Router – Direction Detection
 
 ↓
 
+System Email Filter
+
+↓
+
 OpenAI Classification
 
 ↓
@@ -153,7 +157,46 @@ OpenAI Classification → Router 2
 
 ---
 
-# Module 5 — OpenAI Classification
+# Module 5 — System / Bounce Email Filter
+
+Purpose
+
+Prevent obvious automated system emails from reaching the OpenAI
+classification module.
+
+This reduces AI token usage and prevents bounce/system notifications
+from polluting the support dataset.
+
+Condition rules
+
+The email is considered system-generated if ANY of the following
+conditions match:
+
+Sender email contains:
+
+• stripe
+• instashop
+• t.shopifymail.com
+• postmaster
+
+OR
+
+Headers.basic.return-path contains:
+
+• bounce
+• noreply
+• no-reply
+• mailer-daemon
+
+OR
+
+Headers.basic.content-type contains:
+
+• report
+
+---
+
+# Module 6 — OpenAI Classification
 
 Model
 
@@ -382,7 +425,7 @@ Body:
 
 ---
 
-# Module 6 — Router: Support Importance Filter
+# Module 7 — Router: Support Importance Filter
 
 Purpose
 
@@ -409,7 +452,7 @@ AND
 
 ---
 
-# Module 7 — Telegram Notification
+# Module 8 — Telegram Notification
 
 Purpose
 
@@ -427,7 +470,7 @@ Message:
 
 ---
 
-# Module 8 — Airtable: Create Record
+# Module 9 — Airtable: Create Record
 
 Base
 
@@ -528,3 +571,63 @@ No AI classification fields used.
 • conversation_hash equals sender email unless extracted from body  
 • Thread linking uses Message-ID  
 • Priority stored for SLA design
+
+
+---
+
+# Change Log
+
+## 2026-03-10
+
+### Email system filter improvements
+
+Two updates were introduced to improve dataset quality and reduce unnecessary OpenAI processing.
+
+**1. Filter renamed**
+
+Previous name:
+System generated emails filter
+
+New name:
+System / Bounce Email Filter
+
+This better reflects that the filter blocks both automated system emails and delivery failure notifications.
+
+**2. Additional deterministic rules added**
+
+The filter now blocks obvious automated emails before reaching the OpenAI classification module.
+
+Rules added:
+
+Sender email contains:
+- stripe
+- instashop
+- t.shopifymail.com
+- postmaster
+
+Headers.basic.return-path contains:
+- bounce
+- noreply
+- no-reply
+- mailer-daemon
+
+Headers.basic.content-type contains:
+- report
+
+Purpose:
+Prevent bounce notifications, system alerts, and known automated service emails from entering the AI processing pipeline.
+
+**3. OpenAI prompt improvement**
+
+Additional instructions were added to the OpenAI classification prompt to better detect automated or mailing-list emails.
+
+The model now classifies as **spam** when indicators such as the following appear:
+
+- mailing list headers
+- Google Groups notifications
+- helpdesk ticket updates from external systems
+- automated discussion threads
+- promotional newsletters unrelated to Gastronom business
+
+Goal:
+Improve classification accuracy and prevent automated messages from entering the structured dataset.
