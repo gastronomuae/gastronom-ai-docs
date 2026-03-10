@@ -209,6 +209,8 @@ Classify the email into structured fields used by the support intelligence syste
 Output format
 
 broad_category|issue_category|priority|confidence|customer_email|supplier_region
+b2b_sales|null|high|0.92|null|
+upplier_prospect|null|normal|0.86|shcriabky@gmail.com|priority_region
 
 Possible broad_category values
 
