@@ -204,56 +204,6 @@ gpt-5-nano
 
 Purpose
 
-Classify the email into structured fields used by the support intelligence system.
-
-Output format
-
-broad_category|issue_category|priority|confidence|customer_email|supplier_region
-
-b2b_sales|null|high|0.92|null|
-
-upplier_prospect|null|normal|0.86|shcriabky@gmail.com|priority_region
-
-Possible broad_category values
-
-support  
-supplier_prospect  
-b2b_sales  
-marketing  
-other  
-
-Example output
-
-support|order_status|normal|0.83|customer@email.com|null
-
-Meaning:
-- broad_category = support
-- issue_category = order_status
-- priority = normal
-- confidence = 0.83
-- customer_email = customer@email.com
-  if the message is submitted via the website contact form or email address found in body of email (example: signature) and the email header shows a generic sender (e.g., a Shopify notification address), the AI should
-  instead extract and return the email address provided by the customer inside the message body. Otherwise = null
-- supplier_region = used only when broad_category = supplier_prospect.
-  Determines whether the supplier belongs to Gastronom’s priority sourcing region.
-
-Possible values:
-- priority_region
-Supplier located in Russia, Armenia, Georgia, Uzbekistan, Kazakhstan, Belarus, 
-OR suppliers located in the UAE producing CIS-style products targeted at Russian / Eastern  European customers (e.g., pelmeni, vareniki, manty, CIS bakery products).
-
-other_region:
-- Supplier located outside the priority region and not related to CIS-style food supply (e.g., Vietnam, India, China, generic global exporters).
-
-unknown
-- Supplier region cannot be determined from the email content.
-
-null
-- Returned when the message is not classified as supplier_prospect.
-
----
-PROMPT
-
 Classify the email below.
 
 Return exactly 6 values separated by | in this order:
@@ -384,8 +334,6 @@ null
 
 supplier_region:
 
-supplier_region:
-
 If broad_category = supplier_prospect, determine whether the supplier belongs to the priority region.
 
 Priority region includes:
@@ -416,6 +364,7 @@ If broad_category is not supplier_prospect, return:
 null
 
 Return only the pipe-separated line. No explanation.
+
 
 Subject:
 {{2.subject}}
