@@ -294,7 +294,8 @@ Conversation requires human escalation or manual handling.
 closed  
 Conversation fully finished and no further action expected.
 
-
+If resolution_status = unresolved
+conversation_status must NOT be closed.
 response_time_seconds  
 
 Response time if calculated externally.
