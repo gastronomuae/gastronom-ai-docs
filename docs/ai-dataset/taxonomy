@@ -1,0 +1,157 @@
+# Issue Category Taxonomy
+
+This document defines the official issue categories used across all AI classifiers.
+
+The taxonomy must remain consistent across:
+
+- WhatsApp
+- Instagram
+- Email
+
+---
+
+# Support Issue Categories
+
+order_status  
+
+Customer asking about order progress.
+
+Examples:
+
+Where is my order?  
+Has my order shipped?  
+When will my order arrive?
+
+---
+
+order_details  
+
+Operational coordination of an order.
+
+Examples:
+
+Confirming delivery address  
+Confirming order total  
+Delivery instructions  
+Rider arrival messages
+
+---
+
+order_modification  
+
+Customer asking to change an existing order.
+
+Examples:
+
+Add another item  
+Remove a product  
+Change quantity
+
+---
+
+delivery_time  
+
+Discussion specifically about delivery schedule.
+
+Examples:
+
+Deliver tomorrow morning  
+Can you deliver at 6 PM?
+
+---
+
+delivery_area  
+
+Customer asking if delivery is available in a location.
+
+Examples:
+
+Do you deliver to Dubai Marina?  
+Delivery in Sharjah?
+
+---
+
+payment  
+
+Questions related to payment.
+
+Examples:
+
+Can I pay cash?  
+Do you accept card?
+
+---
+
+product_question  
+
+Customer asking about product availability or details.
+
+Examples:
+
+Do you have Borjomi?  
+Is this product in stock?
+
+---
+
+complaint  
+
+Customer expressing dissatisfaction.
+
+Examples:
+
+Delivery is late  
+Wrong product received
+
+---
+
+refund  
+
+Customer requesting a refund.
+
+---
+
+cancellation  
+
+Customer requesting order cancellation.
+
+---
+
+address_change  
+
+Customer explicitly asking to change delivery address.
+
+Examples:
+
+Change my address  
+Send to another address
+
+---
+
+promotion  
+
+Customer asking about discounts or offers.
+
+Examples:
+
+Do you have promotions?  
+Any discounts today?
+
+---
+
+agent_reply  
+
+Short acknowledgement message sent by the agent.
+
+Examples:
+
+OK  
+Sure  
+Thank you
+
+These messages contain **no operational information**.
+
+---
+
+other  
+
+Support-related message that does not clearly match another category.
