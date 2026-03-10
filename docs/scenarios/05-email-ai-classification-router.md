@@ -242,6 +242,27 @@ marketing = Service providers, agencies, freelancers, affiliates, commission-bas
 
 spam = Obvious spam, phishing attempts, suspicious payment warnings, fake invoices, cryptocurrency requests, password reset scams, impersonation of banks or couriers, irrelevant bulk emails.
 
+spam also includes:
+
+• mailing list messages
+• Google Groups notifications
+• helpdesk ticket updates from external systems
+• automated discussion threads or ticket notifications
+• system generated messages where the sender is not directly contacting Gastronom
+• promotional newsletters unrelated to Gastronom business
+
+
+If the email contains headers or indicators such as:
+
+Precedence: list
+Mailing-list
+List-ID
+List-Unsubscribe
+Google Groups
+Ticket system notifications
+
+the email is likely an automated mailing list message and should be classified as spam unless the content clearly relates to Gastronom business.
+
 other = Legitimate email that does not clearly fall into the above categories.
 
 LANGUAGE NOTE:
@@ -357,7 +378,6 @@ From:
 
 Body:
 {{first(split(2.text; "\nOn "))}}
-
 
 
 ---
