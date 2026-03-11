@@ -35,6 +35,21 @@ If an order is placed **between {{delivery_same_day_cutoff}} and {{delivery_chat
 
 In such cases, customers should contact us via WhatsApp:
 
+### Delivery Time Logic
+
+Delivery timing depends on when the order is placed.
+
+• Orders placed **before delivery_same_day_cutoff** are usually delivered the same day.
+
+• Orders placed **between delivery_same_day_cutoff and delivery_chat_cutoff** may still be delivered the same day, but require manual confirmation by the team.
+
+• Orders placed **after delivery_chat_cutoff** are delivered **the next day**.
+
+• When the request comes after **delivery_chat_cutoff**, the assistant should not suggest urgent delivery or manual confirmation.
+
+• If the request is made after **delivery_chat_cutoff**, the assistant should explain that the delivery will be scheduled the next day.
+
+
 ### Delivery Area
 
 Delivery is currently available **within Dubai only**.
