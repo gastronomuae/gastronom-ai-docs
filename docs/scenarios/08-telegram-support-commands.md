@@ -80,15 +80,15 @@ record_id
 
 Value:
 
-
+```
 trim(get(split(1.message.reply_to_message.text; "🆔 "); 2))
-
+```
 
 Result:
 
-
+```
 rectCfWw73GesVNYP
-
+```
 
 ---
 
@@ -131,9 +131,9 @@ Router splits the logic.
 
 Condition:
 
-
+```
 lower(trim(1.message.text)) = "send"
-
+```
 
 Message sent to customer:
 
@@ -149,9 +149,9 @@ ai_suggested_reply
 
 Condition:
 
-
+```
 lower(trim(1.message.text)) != "send"
-
+```
 
 Message sent to customer:
 
@@ -184,13 +184,13 @@ HTTP → Make a Request
 
 Endpoint:
 
-
+```
 POST https://graph.facebook.com/v25.0/me/messages
-
+```
 
 Body:
 
-
+```json
 {
 "recipient": {
 "id": "{{conversation_id}}"
@@ -199,7 +199,7 @@ Body:
 "text": "{{reply_text}}"
 }
 }
-
+```
 
 Where:
 
@@ -216,17 +216,17 @@ Instagram sends a webhook event for messages sent by the bot.
 
 Example:
 
-
+```
 "is_echo": true
-
+```
 
 These must be ignored in Scenario 07 to prevent infinite loops.
 
 Required filter:
 
-
+```
 message.is_echo != true
-
+```
 
 ---
 
@@ -251,15 +251,15 @@ reply_sent
 
 Filter before sending message:
 
-
+```
 reply_sent = false
-
+```
 
 Then update record:
 
-
+```
 reply_sent = true
-
+```
 
 ---
 
@@ -279,9 +279,9 @@ This improves AI training datasets.
 
 Future router branch:
 
-
+```
 channel = whatsapp
-
+```
 
 Send via WhatsApp Cloud API.
 
@@ -297,7 +297,7 @@ Customer DM:
 
 Telegram notification:
 
-
+```
 📩 New customer message
 
 👤 Здравствуйте, сколько занимает доставка?
@@ -306,23 +306,23 @@ Telegram notification:
 Доставка обычно занимает 2–3 часа.
 
 🆔 rectCfWw73GesVNYP
-
+```
 
 Agent actions:
 
 Option 1:
 
-
+```
 send
-
+```
 
 → sends AI reply
 
 Option 2:
 
-
+```
 Доставка обычно занимает около 3 часов 😊
-
+```
 
 → sends custom reply
 
