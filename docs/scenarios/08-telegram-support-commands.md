@@ -184,42 +184,68 @@ escalation_flag | false |
 
 # Step 5 — Channel Router
 
-After determining the reply text, the scenario routes the response based on the customer communication channel.
-
-Router condition: channel
-
-Value comes from: Airtable → Get Record → channel
-
-Possible values:
-
-- instagram
-- whatsapp
-
-Current implementation:
-
-| Channel | Status |
-|-------|--------|
-instagram | implemented |
-whatsapp | placeholder |
-
-The router enables future expansion to additional messaging platforms while maintaining a single Telegram support workflow.
-
-
----
 # Instagram Channel
 
 Customer replies are delivered via the Instagram Graph API.
 
-Module: HTTP → Make a Request
+Two reply paths exist depending on the command used in Telegram.
 
-Endpoint: POST
-```
- https://graph.facebook.com/v25.0/me/messages
-```
+| Command | Behaviour |
+|--------|-----------|
+send | Send AI suggested reply |
+custom reply | Send agent-written message |
 
-Request Body:
+Both paths send a message using the same Instagram endpoint.
+
+---
+
+## Instagram API Endpoint
+
+HTTP → Make a Request: POST
+
+```
+https://graph.facebook.com/v25.0/me/messages
+```
+---
+
+# Send AI Suggested Reply
+
+Used when the support agent types: send
+
+The AI-generated response stored in Airtable is sent without modification.
+
+### Request Body
 
 ```json
+{
+  "recipient": {
+    "id": "{{8.conversation_id}}"
+  },
+  "message": {
+    "text": "{{8.ai_suggested_reply}}"
+  }
+}
+```
+
+Field mapping:
+
+- conversation_id	-> Airtable record
+- ai_suggested_reply -> AI response generated in Scenario 07
+
+Instagram returns:
+
+- recipient_id
+- message_id
+
+The message_id is saved in Airtable as: message_id_external
+
+---
+# Reply With Custom Message
+
+Used when the support agent writes a reply directly in Telegram.
+
+Request Body
+
 {
   "recipient": {
     "id": "{{8.conversation_id}}"
@@ -228,21 +254,76 @@ Request Body:
     "text": "{{1.message.text}}"
   }
 }
-```
 
 Field mapping:
 
 - conversation_id	-> Airtable record
-- reply_text	-> AI suggestion OR Telegram reply
-
-The Instagram API returns:
-
-- recipient_id
-- message_id
+- ai_suggested_reply -> Telegram message written by agent
 
 The message_id is saved in Airtable as: message_id_external
 
-After the message is sent, the scenario logs the outbound message in Airtable.
+
+---
+
+# Airtable Logging
+
+After sending the message to Instagram, the scenario logs the outbound message in Airtable.
+
+Two logging variations exist depending on whether the AI reply was used or a custom reply was written.
+
+---
+
+# Airtable Record — AI Reply (send)
+
+Used when the AI suggested reply was sent.
+
+| Field | Value |
+|------|------|
+conversation_id | `8.conversation_id` |
+message_id_external | `21.data.message_id` |
+message_direction | outbound |
+message_source | instagram dm |
+message_text | `8.ai_suggested_reply` |
+broad_category | `8.broad_category` |
+timestamp_utc | `formatDate(now; YYYY-MM-DD HH:mm:ss)` |
+agent_name | `1.Message: From: User Name` |
+ai_reply_used | true |
+escalation_flag | false |
+customer_sentiment | `8.customer_sentiment` |
+priority | `8.Priority` |
+confidence_score | `8.confidence_score` |
+channel | instagram |
+conversation_started_at | `8.conversation_started_at` |
+conversation_hash | `8.conversation_hash` |
+label_source | ai_prediction |
+
+---
+
+# Airtable Record — Custom Reply (/reply)
+
+Used when the agent writes a custom reply in Telegram.
+
+| Field | Value |
+|------|------|
+conversation_id | `8.conversation_id` |
+message_id_external | `12.data.message_id` |
+message_direction | outbound |
+message_source | instagram dm |
+message_text | `1.Message: Text` |
+broad_category | `8.broad_category` |
+timestamp_utc | `formatDate(now; YYYY-MM-DD HH:mm:ss)` |
+agent_name | `1.Message: From: User Name` |
+ai_reply_used | false |
+escalation_flag | true |
+customer_sentiment | `8.customer_sentiment` |
+priority | `8.Priority` |
+confidence_score | `8.confidence_score` |
+channel | instagram |
+conversation_started_at | `8.conversation_started_at` |
+conversation_hash | `8.conversation_hash` |
+label_source | human_labeled |
+
+
 
 ---
 
