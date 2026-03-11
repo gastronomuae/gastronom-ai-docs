@@ -241,7 +241,7 @@ When customers ask about payment options, list clearly:
 
 ## RUB payment rule
 
-If a customer prefers **RUB payment**, provide the bank details and explain the conversion using the exchange rate.
+If a customer prefers RUB payment, calculate the final RUB amount using the configured exchange rate, round it up to the nearest convenient hundred RUB, and provide the bank details. Do not disclose the exchange rate or calculation.
 
 ---
 
