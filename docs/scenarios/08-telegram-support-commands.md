@@ -113,21 +113,15 @@ This retrieves:
 
 ---
 
-# Step 4 — Router (Send vs Custom Reply)
+# Step 4 — Reply Command Router
 
-Agents can either:
+Support agents control the response behavior using Telegram commands.
 
-
-send
-
-
-or type a custom reply.
-
-Router splits the logic.
+Two reply paths exist.
 
 ---
 
-## Route 1 — SEND AI Suggested Reply
+## Route 1 — Send AI Suggested Reply
 
 Condition:
 
@@ -135,17 +129,25 @@ Condition:
 lower(trim(1.message.text)) = "send"
 ```
 
-Message sent to customer:
+Behavior:
+
+The AI generated reply from the Airtable record is sent to the customer without modification.
+
+Message source: ai_suggested_reply
 
 
-ai_suggested_reply
+Dataset flags written to Airtable:
 
-
-(from Airtable record)
+| Field | Value |
+|------|------|
+message_direction | outbound |
+ai_reply_used | true |
+label_source | ai_prediction |
+escalation_flag | false |
 
 ---
 
-## Route 2 — Custom Reply
+## Route 2 — Custom Reply (/reply)
 
 Condition:
 
@@ -153,27 +155,152 @@ Condition:
 lower(trim(1.message.text)) != "send"
 ```
 
-Message sent to customer:
+
+Behavior:
+
+The Telegram message written by the support agent is sent directly to the customer.
+
+Message source: 1.message.text
 
 
-1.message.text
+Dataset flags written to Airtable:
 
+| Field | Value |
+|------|------|
+message_direction | outbound |
+ai_reply_used | false |
+label_source | human_labeled |
+escalation_flag | false |
 
-(the agent's Telegram message)
 
 ---
 
 # Step 5 — Channel Router
 
-After determining the reply text, the scenario routes based on the message channel.
+After determining the reply text, the scenario routes the response based on the customer communication channel.
 
-Currently implemented:
+Router condition:
 
-- Instagram
+# Step 5 — Channel Router
 
-Future:
+After determining the reply text, the scenario routes the response based on the customer communication channel.
 
-- WhatsApp
+Router condition:
+
+
+---
+# Instagram Channel
+
+Customer replies are delivered via the Instagram Graph API.
+
+Module:
+
+HTTP → Make a Request
+
+Endpoint: 
+
+POST
+```
+ https://graph.facebook.com/v25.0/me/messages
+```
+
+Request Body:
+
+```json
+{
+  "recipient": {
+    "id": "{{conversation_id}}"
+  },
+  "message": {
+    "text": "{{reply_text}}"
+  }
+}
+
+Field mapping:
+
+- conversation_id	-> Airtable record
+- reply_text	-> AI suggestion OR Telegram reply
+
+The Instagram API returns:
+
+recipient_id
+
+message_id
+
+The message_id is saved in Airtable as: message_id_external
+
+
+---
+
+# Updated GitHub Section — WhatsApp Placeholder
+
+
+# WhatsApp Channel (Placeholder)
+
+Future support for WhatsApp Cloud API will be implemented using the same reply router.
+
+Router condition: channel = whatsapp
+
+
+Planned module:
+
+HTTP → Make a Request
+
+Endpoint:
+
+POST
+```
+https://graph.facebook.com/v19.0/{{phone_number_id}}/messages
+```
+
+Example payload:
+
+```json
+{
+  "messaging_product": "whatsapp",
+  "to": "{{wa_number}}",
+  "type": "text",
+  "text": {
+    "body": "{{reply_text}}"
+  }
+}
+
+Dataset logging will remain identical to Instagram:
+
+- message_direction -> outbound
+- message_source	-> whatsapp
+- ai_reply_used	-> true / false
+- label_source ->	ai_prediction / human_labeled
+
+
+---
+
+# Updated GitHub Section — Dataset Logging
+
+Add this new section (your doc currently lacks it).
+
+```markdown
+# Dataset Logging
+
+Every outbound reply is recorded in Airtable to build the AI training dataset.
+
+Fields written:
+
+| Field | Description |
+|------|-------------|
+conversation_id | Instagram or WhatsApp user ID |
+message_direction | inbound / outbound |
+message_text | actual message sent |
+channel | instagram / whatsapp |
+ai_reply_used | true if AI suggestion used |
+label_source | ai_prediction / human_labeled |
+confidence_score | AI classification confidence |
+priority | message priority |
+broad_category | support / order / etc |
+timestamp_utc | message timestamp |
+conversation_hash | unique conversation key |
+
+This structure allows the system to continuously improve the AI support model.
 
 ---
 
@@ -210,139 +337,4 @@ reply_text | Telegram or AI |
 
 ---
 
-# Echo Handling (Important)
 
-Instagram sends a webhook event for messages sent by the bot.
-
-Example:
-
-```
-"is_echo": true
-```
-
-These must be ignored in Scenario 07 to prevent infinite loops.
-
-Required filter:
-
-```
-message.is_echo != true
-```
-
----
-
-# Current Status
-
-✔ Telegram replies captured  
-✔ Airtable record lookup working  
-✔ Instagram replies successfully sent  
-✔ Echo messages filtered correctly  
-
----
-
-# Known Improvements (TODO)
-
-### 1. Prevent duplicate replies
-
-Add Airtable field:
-
-
-reply_sent
-
-
-Filter before sending message:
-
-```
-reply_sent = false
-```
-
-Then update record:
-
-```
-reply_sent = true
-```
-
----
-
-### 2. Log agent reply
-
-Save support agent message in Airtable:
-
-
-agent_reply
-
-
-This improves AI training datasets.
-
----
-
-### 3. Add WhatsApp support
-
-Future router branch:
-
-```
-channel = whatsapp
-```
-
-Send via WhatsApp Cloud API.
-
----
-
-# Example Workflow
-
-Customer DM:
-
-
-Здравствуйте, сколько занимает доставка?
-
-
-Telegram notification:
-
-```
-📩 New customer message
-
-👤 Здравствуйте, сколько занимает доставка?
-
-🤖 AI Suggested reply:
-Доставка обычно занимает 2–3 часа.
-
-🆔 rectCfWw73GesVNYP
-```
-
-Agent actions:
-
-Option 1:
-
-```
-send
-```
-
-→ sends AI reply
-
-Option 2:
-
-```
-Доставка обычно занимает около 3 часов 😊
-```
-
-→ sends custom reply
-
----
-
-# Dependencies
-
-Scenario 07  
-`07-ai-support-reply-draft`
-
-Handles:
-
-- message classification
-- AI suggested replies
-- Telegram notification
-
----
-
-# Notes
-
-Telegram messages must be replies to the bot notification.
-
-Direct messages in the Telegram group will be ignored.
