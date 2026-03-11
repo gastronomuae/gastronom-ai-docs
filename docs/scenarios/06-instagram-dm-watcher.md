@@ -1,7 +1,9 @@
 
 # Scenario 6 – Instagram DM Watcher
 
+```
 Webhook → Set Variables → Instagram API Request → Prepare Message → AI Classification → Router → Telegram Alert → Airtable Log
+```
 
 ---
 
@@ -29,6 +31,7 @@ This ensures Instagram inquiries are tracked consistently alongside other suppor
 
 # Module 1 – Webhooks – Custom Webhook
 
+```text
 ## Meta Developer Application
 
 A Meta Developer application was created to enable access to the Instagram Messaging API.
@@ -112,9 +115,10 @@ The Instagram tester role allows the messaging integration to be tested while th
 
 Integration Result
 With this configuration, all Instagram Direct Messages received by the connected Instagram Business account are automatically delivered to the automation system.
+```
 
 # Message Flow
-
+```
 Instagram Direct Message  
 ↓  
 Meta Webhook Event  
@@ -126,6 +130,7 @@ AI Message Classification
 Router (Important / Non‑Important)  
 ↓  
 Telegram Alert + Airtable Logging
+```
 
 ---
 ### Captured data includes:
@@ -170,7 +175,7 @@ Example Output
 ```
 
 ---
-Webhook Message Filter
+# Webhook Message Filter
 
 After the Webhooks – Custom Webhook trigger, a filter is applied to ensure the scenario only processes events that contain actual message text.
 
@@ -198,7 +203,7 @@ Tools – Set Multiple Variables
 | message_id_external | Instagram message ID |
 | sender_id | Instagram user ID |
 | message_text | Raw message |
-| timestamp | formatDate(parseDate(timestamp/1000,"X"),"DD-MM-YYYY","Asia/Dubai") |
+| timestamp | formatDate(parseDate(1.entry[].messaging[].timestamp / 1000; "X"); "YYYY-MM-DD HH:mm:ss"; "Asia/Dubai") |
 
 Example Output
 
@@ -219,8 +224,9 @@ Example Output
 # Module 3 – Instagram API Enrichment
 
 HTTP – Make Request
-
+```
 GET https://graph.facebook.com/v18.0/{sender_id}
+```
 
 Returns:
 
@@ -272,9 +278,10 @@ Returns:
 # Module 4 – Sender Handle Resolution
 
 Tools – Set Variable
-
+```
 sender_handle  
 {{ifempty(username; sender_id)}}
+```
 
 Logic:
 
@@ -288,12 +295,14 @@ Logic:
 OpenAI Model: gpt-5-nano
 
 Output format:
-
+```
 broad_category|issue_category|priority|confidence
+```
 
 Example:
-
+```
 support|product_question|normal|0.82
+```
 
 Broad categories:
 
@@ -318,6 +327,7 @@ other
 ---
 ## Prompt
 
+```
 Classify the Instagram direct message below.
 
 Return exactly 4 values separated by | in this order:
@@ -463,7 +473,7 @@ Return only the pipe-separated line. No explanation.
 
 Message:
 {{1.entry[].messaging[].message.text}}
-
+```
 ---
 
 # Module 6 – Router
@@ -480,13 +490,13 @@ Not every Instagram DM requires immediate action. The AI classification determin
 
 
 ### Important DM
-
+```
   first(split(7.Result; "|")) = support
 OR
   first(split(7.Result; "|")) = b2b_sales
 OR
   first(split(7.Result; "|")) = supplier_prospect
-
+```
 
 These trigger Telegram notifications.
 
@@ -512,13 +522,13 @@ Message Structure:
 
 
 Message format:
-
+```
 📩 Instagram DM
 
 👤 {{15.sender_handle}}
 💬 {{6.message_text}}  
 📅 {{6.timestamp}}
-
+```
 Parse Mode: HTML disabled (plain text recommended)
 
 ---
@@ -548,12 +558,14 @@ Purpose:
 | message_text | message_text |
 | broad_category | first(split(Result,"|")) |
 | issue_category | get(split(Result,"|"),2) |
+| timestamp_utc | {{6.timestamp}} |
 | priority | get(split(Result,"|"),3) |
 | confidence_score | get(split(Result,"|"),4) |
 | resolution_status | unresolved |
 | conversation_status | open |
+| conversation_started | {{6.timestamp}} |
 | conversation_hash | sender_id |
-| timestamp_utc | formatDate(timestamp,"YYYY-MM-DDTHH:mm:ssZ") |
+
 
 ---
 
