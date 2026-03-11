@@ -593,6 +593,36 @@ Purpose:
         "createdTime": "2026-03-04T13:37:50.000Z"
     }
 ]
-
-
 ```
+
+---
+## HTTP — Send Classified Message to Conversation Engine
+
+This module sends the classified Instagram message to the **Conversation Engine webhook**, which creates the Airtable conversation record and triggers the AI support workflow.
+
+### Module
+HTTP → **Make a request**
+
+### Configuration
+
+| Field | Value |
+|------|------|
+Authentication | No authentication |
+Method | POST |
+URL | https://hook.eu1.make.com/o08o3kqzpk8m0l2cbs1y2km2jjv8hsxh |
+Content type | JSON |
+
+---
+
+### JSON Body
+
+```json
+{
+"airtable_record_id": "{{22.id}}",
+"channel": "instagram",
+"message_text": "{{replace(22.message_text; newline; "\n")}}",
+"broad_category": "{{22.broad_category}}",
+"issue_category": "{{22.issue_category}}",
+"priority": "{{22.Priority}}",
+"message_direction": "{{22.message_direction}}"
+}
