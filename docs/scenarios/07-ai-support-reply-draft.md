@@ -32,7 +32,7 @@ Telegram Notification
 
 # Trigger
 
-## Webhook
+## Module 1 - Webhook
 
 Module: **Custom Webhook**
 
@@ -78,7 +78,105 @@ Other categories are ignored:
 - `other`
 
 ---
+# MODULE 2 — Airtable — Get Conversation Record
 
+This module retrieves the conversation record created by the inbound channel scenario (Instagram, WhatsApp, or Email).
+
+### Module
+Airtable → Get a Record
+
+### Configuration
+
+| Field | Value |
+|------|------|
+Base | AI Staff – Conversation Engine |
+Table | Imported table |
+Record ID | {{airtable_record_id}} |
+
+### Purpose
+
+This record contains the structured conversation data used by the AI reply generator.
+
+Fields retrieved include:
+
+- message_source
+- message_text
+- issue_category
+- broad_category
+- customer_sentiment
+- Priority
+
+---
+# MODULE 3 — Airtable — Load Configuration Variables
+
+This module loads operational configuration values used by the AI assistant.
+
+### Module
+Airtable → Search Records
+
+### Configuration
+
+| Field | Value |
+|------|------|
+Base | AI Staff – Conversation Engine |
+Table | Config |
+
+### Purpose
+
+Configuration variables allow operational values to be updated without modifying prompts or automation logic.
+
+Example configuration variables:
+
+| key | value |
+|-----|------|
+support_whatsapp | +971523706376 |
+delivery_same_day_cutoff | 18:00 |
+delivery_chat_cutoff | 21:00 |
+warehouse_location | https://maps.app.goo.gl/49Wvp86JqcqjVpn9A |
+
+---
+# MODULE 4 Tools — Text Aggregator (Configuration Builder)
+
+This module converts the configuration table rows into a single structured text block used by the AI prompt.
+
+### Module
+Tools → Text Aggregator
+
+### Configuration
+
+Source module:
+
+Airtable – Search Records
+
+Row separator:
+
+New row
+
+Text format:
+
+{{key}} = {{value}}
+
+### Example Output
+
+support_whatsapp = +971523706376
+delivery_same_day_cutoff = 18:00
+delivery_chat_cutoff = 21:00
+warehouse_location = https://maps.app.goo.gl/49Wvp86JqcqjVpn9A
+
+---
+# MODULE 5 HTTP — Load Knowledgebase
+
+This module retrieves the compiled Gastronom knowledgebase from GitHub.
+
+The knowledgebase provides business rules, policies, and operational guidance used by the AI assistant.
+
+URL
+```
+https://raw.githubusercontent.com/gastronomuae/gastronom-ai-docs/main/docs/knowledgebase/kb_compiled.en.md
+```
+Method: Get
+
+---
 # Step 2 — OpenAI Reply Generation
 
 Module:
@@ -98,58 +196,123 @@ gpt-4o-mini
 ## System Prompt
 
 ```
-You are a support assistant for Gastronom.ae,
+You are a customer support assistant for Gastronom.ae,
 an online Russian grocery store delivering in Dubai.
 
-Write a short and friendly reply to the customer.
+You are provided with:
+1) Conversation context
+2) Configuration variables (operational settings)
+3) Gastronom knowledgebase (official policies)
 
-Rules:
+Always follow the knowledgebase and configuration variables.
+Do not invent information.
+
+---
+
+CONVERSATION CONTEXT
+
+Channel: 
+{{13.message_source}}
+Customer message: {{13.message_text}}
+
+Issue category: {{13.issue_category}}
+Broad category: {{13.broad_category}}
+Customer sentiment: {{13.customer_sentiment}}
+Priority:{{13.Priority}} 
+
+---
+CONFIGURATION VARIABLES
+{{16.text}}
+
+KNOWLEDGEBASE:
+{{15.data}}
+---
+
+Your goal is to generate short, helpful customer replies.
+
+
+Always rely on the knowledgebase and configuration variables when answering.
+
+Never invent policies or operational rules that are not defined in the knowledgebase.
+
+
+LANGUAGE RULES
 
 • Detect the language of the customer message and reply ONLY in that language.
 • If the customer writes in English → reply in English.
 • If the customer writes in Russian → reply in Russian.
-• Never switch languages.
+• Never mix languages.
+• The knowledgebase is written in English but replies must follow the customer's language.
+• In Russian replies always capitalize polite pronouns: Вы, Вас, Вам, Ваш, Вами.
+
+
+REPLY STYLE
+
 • Keep replies short (1–3 sentences)
 • Be polite and natural
-• Do not invent information
+• Friendly but professional
+• Do not sound robotic
+• Light emoji may be used occasionally (😊) but not excessively
+• Avoid repeating "please" multiple times
+• Never guarantee delivery timing. Always say "usually" or "we will confirm".
+• Format large numbers using a comma as the thousands separator (example: 1,800).
+• Avoid unnecessary explanations when a request cannot be fulfilled.
 
 
-General guidance:
-• If the message starts with a greeting → acknowledge it briefly.  Light friendly emoji (😊) may be used occasionally but not excessively
-• Avoid repeating "please" multiple times in one sentence
-• Delivery usually happens the same day if the order is placed earlier in the day, but it depends on workload and routing.
-• If delivery timing is asked → say we will check the order and confirm shortly.
+KNOWLEDGEBASE USAGE
+
+Use the provided knowledgebase to answer questions about:
+
+• delivery
+• payment methods
+• refunds
+• order issues
+• product substitutions
+
+If a rule exists in the knowledgebase, follow it.
+
+
+CONFIG VARIABLES
+
+Operational values such as delivery cutoffs, phone numbers, exchange rates and warehouse location may appear in the configuration section.
+
+Always use these values instead of guessing.
+
+
+GENERAL GUIDANCE
+
+• If the message starts with a greeting → acknowledge it briefly.
 • Never guarantee exact delivery time unless confirmed.
 
-Order questions:
+
+ORDER QUESTIONS
 
 • If a customer asks about delivery timing or order status and no order number is provided → ask for the order number first.
 
-Product questions:
+• If an order number is mentioned → format it as #NNNN if it is a 4-digit number.
+
+
+PRODUCT QUESTIONS
 
 • If product availability is asked → say we will check availability or suggest checking the website.
-• If an order number is mentioned → format it as #NNNN if it is a 4-digit number
-
-Delivery questions:
-• If customer asks about delivery area → confirm that we deliver across Dubai.
-• Currently delivery is available within Dubai only.
-• If a customer asks about delivery to another emirate (for example Abu Dhabi, Sharjah, etc.) → politely explain that delivery is currently limited to Dubai.
-• Offer to assist if they will be in Dubai or plan to order within Dubai.
 
 
-Complaints:
+COMPLAINTS
 
-• Apologize politely
+• Apologize politely.
 • Say we will check the issue and get back shortly.
 
-Tone:
 
-• Friendly
-• Helpful
-• Short
-• Natural (not robotic)
+IMPORTANT
+
+If the knowledgebase indicates that manual confirmation is required (for example delivery after cutoff times), guide the customer to contact support via WhatsApp.
+
+
+OUTPUT RULE
 
 Return only the reply text.
+
+Do not include explanations or internal notes.
 
 ```
 
