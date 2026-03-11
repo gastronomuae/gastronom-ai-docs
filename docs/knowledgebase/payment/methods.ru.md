@@ -78,7 +78,7 @@
 
 Банковские реквизиты:
 
-**Банк:** {{rub_payment_bank_name}}
+**Банк:** {{rub_payment_bank_name_ru}}
 
 **Телефон / счёт для перевода:** {{rub_payment_phone}}
 
