@@ -2,8 +2,11 @@
 
 ## Do you deliver to my address?
 
-Yes, we deliver across all areas of Dubai, regardless of the district.  
-We are located in Al Quoz and will gladly deliver your order to the address you provide.
+Yes, we deliver across all areas of Dubai, regardless of the district.
+
+Our warehouse is located at:
+
+{{warehouse_location}}
 
 If you have any questions about delivery, please contact us via WhatsApp: **{{support_whatsapp}}**
 
@@ -11,11 +14,13 @@ If you have any questions about delivery, please contact us via WhatsApp: **{{su
 
 ## When will my order be delivered?
 
-We aim to deliver orders on the same day if they are placed in the first half of the day.
+We aim to deliver orders on the **same day** if they are placed **before {{delivery_same_day_cutoff}}**.
 
-However, depending on the order volume and the time the order is placed, delivery may be scheduled for the following day.
+Orders placed after this time may be scheduled for the **next available delivery window** depending on courier availability and order volume.
 
-Thank you for your understanding.
+If your order is placed **between {{delivery_same_day_cutoff}} and {{delivery_chat_cutoff}}**, same-day delivery might still be possible, but it requires manual confirmation from our team.
+
+In such cases, please contact us via WhatsApp: **{{support_whatsapp}}** and we will try our best to arrange delivery.
 
 ---
 
@@ -72,3 +77,15 @@ In such cases we suggest a similar product and always confirm the replacement wi
 If an error occurred, please contact us via WhatsApp or phone: **{{support_whatsapp}}**
 
 We will investigate the issue and resolve it as quickly as possible.
+
+---
+
+# Internal AI Instructions
+
+If a customer asks for **same-day delivery after {{delivery_same_day_cutoff}} but before {{delivery_chat_cutoff}}**, respond politely that delivery might still be possible but requires confirmation from the team.
+
+In such cases the AI should:
+
+1. Provide a helpful response.
+2. Ask the customer to contact WhatsApp **{{support_whatsapp}}**
+3. Flag the conversation for **human escalation if automation allows it**.
