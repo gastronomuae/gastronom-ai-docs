@@ -245,7 +245,7 @@ The message_id is saved in Airtable as: message_id_external
 Used when the support agent writes a reply directly in Telegram.
 
 Request Body
-
+```json
 {
   "recipient": {
     "id": "{{8.conversation_id}}"
@@ -254,6 +254,7 @@ Request Body
     "text": "{{1.message.text}}"
   }
 }
+```
 
 Field mapping:
 
@@ -273,7 +274,7 @@ Two logging variations exist depending on whether the AI reply was used or a cus
 
 ---
 
-# Airtable Record — AI Reply (send)
+# Airtable Record — Instagram - AI Reply (send)
 
 Used when the AI suggested reply was sent.
 
@@ -299,7 +300,7 @@ label_source | ai_prediction |
 
 ---
 
-# Airtable Record — Custom Reply (/reply)
+# Airtable Record — Instagram - Custom Reply (/reply)
 
 Used when the agent writes a custom reply in Telegram.
 
@@ -323,113 +324,151 @@ conversation_started_at | `8.conversation_started_at` |
 conversation_hash | `8.conversation_hash` |
 label_source | human_labeled |
 
-
-
 ---
 
-# Updated GitHub Section — WhatsApp Placeholder
+# WhatsApp Channel
 
+Scenario 08 sends messages to customers via the WhatsApp Business Cloud API.
 
-# WhatsApp Channel (Placeholder)
+Two routes are supported:
 
-Future support for WhatsApp Cloud API will be implemented using the same reply router.
+- Send —> sends the AI-generated suggested reply
+- Reply —> sends a manual operator message
 
-Router condition: channel = whatsapp
+Both routes use the same HTTP module configuration with different message text sources.
 
+Route 1 — Send (AI Suggested Reply)
 
-Planned module:
+This route sends the AI-generated support reply stored in Airtable.
 
-HTTP → Make a Request
+Used when the operator presses Send in Telegram.
 
-Endpoint:
+HTTP — Send WhatsApp Message
 
-POST
+Module
+
+HTTP → Make a request
+URL
 ```
-https://graph.facebook.com/v19.0/{{phone_number_id}}/messages
+https://graph.facebook.com/v19.0/{{WHATSAPP_PHONE_NUMBER_ID}}/messages
 ```
+Method: POST
+Headers
+```
+Authorization: Bearer {{WHATSAPP_ACCESS_TOKEN}}
+Content-Type: application/json
+```
+Body type: Raw → JSON
 
-Example payload:
-
+JSON Body
 ```json
 {
   "messaging_product": "whatsapp",
-  "to": "{{wa_number}}",
+  "recipient_type": "individual",
+  "to": "{{8.customer_phone}}",
   "type": "text",
   "text": {
-    "body": "{{reply_text}}"
+    "preview_url": false,
+    "body": "{{8.ai_suggested_reply}}"
   }
 }
-
-Dataset logging will remain identical to Instagram:
-
-- message_direction -> outbound
-- message_source	-> whatsapp
-- ai_reply_used	-> true / false
-- label_source ->	ai_prediction / human_labeled
-
-
----
-
-# Updated GitHub Section — Dataset Logging
-
-Add this new section (your doc currently lacks it).
-
-```markdown
-# Dataset Logging
-
-Every outbound reply is recorded in Airtable to build the AI training dataset.
-
-Fields written:
-
-| Field | Description |
-|------|-------------|
-conversation_id | Instagram or WhatsApp user ID |
-message_direction | inbound / outbound |
-message_text | actual message sent |
-channel | instagram / whatsapp |
-ai_reply_used | true if AI suggestion used |
-label_source | ai_prediction / human_labeled |
-confidence_score | AI classification confidence |
-priority | message priority |
-broad_category | support / order / etc |
-timestamp_utc | message timestamp |
-conversation_hash | unique conversation key |
-
-This structure allows the system to continuously improve the AI support model.
-
----
-
-# Instagram Reply
-
-**Module**
-HTTP → Make a Request
-
-Endpoint:
-
 ```
-POST https://graph.facebook.com/v25.0/me/messages
+Airtable Update (Send)
+
+After sending the message, update the Airtable record.
+
+Route 2 — Reply (Manual Operator Message)
+
+This route sends a manual reply written by the operator in Telegram.
+
+Used when the operator responds directly to the Telegram message.
+
+HTTP — Send WhatsApp Message
+
+Module
+
+HTTP → Make a request
+URL
 ```
+https://graph.facebook.com/v19.0/{{WHATSAPP_PHONE_NUMBER_ID}}/messages
+```
+Method: POST
 
-Body:
-
+Headers
+```
+Authorization: Bearer {{WHATSAPP_ACCESS_TOKEN}}
+Content-Type: application/json
+```
+Body type: Raw → JSON
+JSON Body
 ```json
 {
-"recipient": {
-"id": "{{conversation_id}}"
-},
-"message": {
-"text": "{{reply_text}}"
-}
+  "messaging_product": "whatsapp",
+  "recipient_type": "individual",
+  "to": "{{8.customer_phone}}",
+  "type": "text",
+  "text": {
+    "preview_url": false,
+    "body": "{{1.message.text}}"
+  }
 }
 ```
+---
 
-Where:
+# Airtable Logging
 
-| Field | Source |
-|------|------|
-conversation_id | Airtable |
-reply_text | Telegram or AI |
+After sending the message to WhatsApp, the scenario logs the outbound message in Airtable.
+
+Two logging variations exist depending on whether the AI reply was used or a custom reply was written.
 
 ---
 
+# Airtable Record — WhatsApp - AI Reply (send)
 
+Used when the AI suggested reply was sent.
+
+| Field | Value |
+|------|------|
+conversation_id | `8.conversation_id` |
+message_id_external | `21.data.message_id` |
+message_direction | outbound |
+message_source | whatsapp |
+message_text | `8.ai_suggested_reply` |
+broad_category | `8.broad_category` |
+timestamp_utc | `formatDate(now; YYYY-MM-DD HH:mm:ss)` |
+agent_name | `1.Message: From: User Name` |
+ai_reply_used | true |
+escalation_flag | false |
+customer_sentiment | `8.customer_sentiment` |
+priority | `8.Priority` |
+confidence_score | `8.confidence_score` |
+channel | whatsapp_A |
+conversation_started_at | `8.conversation_started_at` |
+conversation_hash | `8.conversation_hash` |
+label_source | ai_prediction |
+
+---
+
+# Airtable Record — WhatsApp - Custom Reply (/reply)
+
+Used when the agent writes a custom reply in Telegram.
+
+| Field | Value |
+|------|------|
+conversation_id | `8.conversation_id` |
+message_id_external | `12.data.message_id` |
+message_direction | outbound |
+message_source | whatsapp |
+message_text | `1.Message: Text` |
+broad_category | `8.broad_category` |
+timestamp_utc | `formatDate(now; YYYY-MM-DD HH:mm:ss)` |
+agent_name | `1.Message: From: User Name` |
+ai_reply_used | false |
+escalation_flag | true |
+customer_sentiment | `8.customer_sentiment` |
+priority | `8.Priority` |
+confidence_score | `8.confidence_score` |
+channel | whatsapp_A |
+conversation_started_at | `8.conversation_started_at` |
+conversation_hash | `8.conversation_hash` |
+label_source | human_labeled |
