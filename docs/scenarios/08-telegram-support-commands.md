@@ -14,17 +14,24 @@ Agents can either:
 
 # High Level Flow
 ```
-Customer message (Instagram DM)
-↓  
-Scenario 07 processes message  
-↓  
-Telegram notification sent to support group  
-↓  
-Agent replies in Telegram  
-↓  
-Scenario 08 captures the reply  
-↓  
-Customer receives response in Instagram DM
+Telegram Bot (Watch Updates)
+↓
+Tools (Set variable → record_id)
+↓
+Airtable (Get record)
+↓
+Router A — command router
+     ├ send
+     └ reply
+↓
+Router B — channel router
+     ├ instagram
+     └ whatsapp (placeholder)
+↓
+HTTP → send message
+↓
+Airtable → log outbound message
+
 ```
 ---
 
@@ -179,13 +186,23 @@ escalation_flag | false |
 
 After determining the reply text, the scenario routes the response based on the customer communication channel.
 
-Router condition:
+Router condition: channel
 
-# Step 5 — Channel Router
+Value comes from: Airtable → Get Record → channel
 
-After determining the reply text, the scenario routes the response based on the customer communication channel.
+Possible values:
 
-Router condition:
+- instagram
+- whatsapp
+
+Current implementation:
+
+| Channel | Status |
+|-------|--------|
+instagram | implemented |
+whatsapp | placeholder |
+
+The router enables future expansion to additional messaging platforms while maintaining a single Telegram support workflow.
 
 
 ---
@@ -193,13 +210,9 @@ Router condition:
 
 Customer replies are delivered via the Instagram Graph API.
 
-Module:
+Module: HTTP → Make a Request
 
-HTTP → Make a Request
-
-Endpoint: 
-
-POST
+Endpoint: POST
 ```
  https://graph.facebook.com/v25.0/me/messages
 ```
@@ -209,12 +222,13 @@ Request Body:
 ```json
 {
   "recipient": {
-    "id": "{{conversation_id}}"
+    "id": "{{8.conversation_id}}"
   },
   "message": {
-    "text": "{{reply_text}}"
+    "text": "{{1.message.text}}"
   }
 }
+```
 
 Field mapping:
 
@@ -223,12 +237,12 @@ Field mapping:
 
 The Instagram API returns:
 
-recipient_id
-
-message_id
+- recipient_id
+- message_id
 
 The message_id is saved in Airtable as: message_id_external
 
+After the message is sent, the scenario logs the outbound message in Airtable.
 
 ---
 
