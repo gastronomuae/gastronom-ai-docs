@@ -72,6 +72,8 @@ The process works as follows:
 4. The customer sends us the transfer receipt for confirmation.
 5. After confirmation, we proceed with delivery.
 
+The RUB amount is calculated using the current exchange rate and may be rounded up slightly to the nearest convenient amount.
+
 Exchange rate used for conversion:
 
 **{{rub_aed_exchange_rate}}**
