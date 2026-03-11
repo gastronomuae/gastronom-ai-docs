@@ -13,7 +13,7 @@ Agents can either:
 ---
 
 # High Level Flow
-
+```
 Customer message (Instagram DM)
 ↓  
 Scenario 07 processes message  
@@ -25,7 +25,7 @@ Agent replies in Telegram
 Scenario 08 captures the reply  
 ↓  
 Customer receives response in Instagram DM
-
+```
 ---
 
 # Trigger
@@ -56,17 +56,16 @@ The original Telegram notification contains the Airtable record ID:
 
 Example:
 
-
+```
 📩 New customer message
 
 📢 instagram
 👤 Customer message text
 
 🤖 AI Suggested reply:
-...
-
 🆔 rectCfWw73GesVNYP
 
+```
 
 We extract this ID from the original message.
 
