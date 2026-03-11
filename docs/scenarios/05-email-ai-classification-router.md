@@ -10,40 +10,27 @@ This scenario builds the foundation for **AI‑powered customer support intellig
 
 # Architecture Overview
 
+```
 Email – Watch Emails
-
 ↓
-
 Airtable – Search Records (Message-ID Deduplication)
-
 ↓
-
 Router – Duplicate Detection
-
-→ Branch 1: Already Processed → STOP  
-→ Branch 2: New Email
-
+  → Branch 1: Already Processed → STOP  
+  → Branch 2: New Email
 ↓
-
 Router – Direction Detection
-
-→ OUTBOUND → Airtable Log → STOP  
-→ INBOUND
-
+  → OUTBOUND → Airtable Log → STOP  
+  → INBOUND
 ↓
-
 System Email Filter
-
 ↓
-
 OpenAI Classification
-
 ↓
-
 Router – Importance Filter
-
-→ Telegram Notification  
-→ Airtable Create Record
+  → Telegram Notification  
+  → Airtable Create Record
+```
 
 ---
 
@@ -55,11 +42,11 @@ Trigger when a new email arrives in the **ai@gastronom.ae** mailbox.
 
 Captured fields:
 
-• Subject  
-• Sender email address  
-• Text content  
-• Headers → message-id  
-• Date
+- Subject
+- Sender email address
+- Text content
+- Headers → message-id
+- Date
 
 Important fields used in the scenario:
 
@@ -87,9 +74,9 @@ Base: **AI Staff – Conversation Engine**
 Table: **conversation_log**
 
 Formula:
-
+```
 {message_id_external} = "{{headers.message-id}}"
-
+```
 Limit: 1
 
 If the Message-ID already exists, the scenario stops execution.
@@ -101,9 +88,9 @@ If the Message-ID already exists, the scenario stops execution.
 Branch 1 — Already Processed
 
 Condition
-
+```
 Total bundles > 0
-
+```
 Action
 
 STOP
@@ -111,9 +98,9 @@ STOP
 Branch 2 — New Email
 
 Condition
-
+```
 Total bundles = 0
-
+```
 Action
 
 Continue scenario
@@ -142,8 +129,8 @@ Processing:
 
 Reason:
 
-• Prevent unnecessary OpenAI usage  
-• Prevent staff messages entering AI dataset  
+- Prevent unnecessary OpenAI usage
+- Prevent staff messages entering AI dataset  
 
 ---
 
@@ -202,6 +189,9 @@ Model
 
 gpt-5-nano
 
+## Prompt
+
+```
 Purpose
 
 Classify the email below.
@@ -374,7 +364,7 @@ From:
 
 Body:
 {{first(split(2.text; "\nOn "))}}
-
+```
 
 ---
 
@@ -384,7 +374,7 @@ Purpose
 
 Send only important messages to Telegram.
 
-
+```
 Condition:
   first(split(7.Result; "|"))
   Equal to
@@ -402,7 +392,7 @@ AND
   {{get(split(7.result; "|"); 6)}}
   Equal to
   priority_region
-
+```
 ---
 
 # Module 8 — Telegram Notification
@@ -412,7 +402,7 @@ Purpose
 Alert the support team of important emails.
 
 Message format
-
+```
 📧 CUSTOMER EMAIL
 
 From: {{2.Sender: Email address}}
@@ -420,7 +410,7 @@ Subject: {{2.Subject}}
 
 Message:
 {{substring(trim(toString(ifempty(2.text; ))); 0; 250)}}
-
+```
 ---
 
 # Module 9 — Airtable: Create Record
@@ -450,13 +440,14 @@ Create a structured dataset for analytics and AI training.
 | **channel** | `email` |
 | **wa_number** | `empty` |
 | **message_text** | `{{if(length(first(split(2.text; "\nOn "))) > 250; substring(first(split(2.text; "\nOn ")); 0; 250) + "..."; first(split(2.text; "\nOn ")) )}}` |
-| **timestamp_utc** | `formatDate(parseDate(2.Date; "X"); "YYYY-MM-DDTHH:mm:ss.SSS[Z]"; "UTC")` |
+| **timestamp_utc** | `{{formatDate(parseDate(2.date / 1000; "X"); "YYYY-MM-DD HH:mm:ss"; "Asia/Dubai")}}` |
 | **broad_category** | `first(split(7.Result; "|"))` |
 | **issue_category** | `trim(get(split(7.Result; "|"); 2))` |
 | **priority** | `trim(get(split(7.Result; "|"); 3))` |
 | **confidence_score** | `trim(get(split(7.Result; "|"); 4))` |
 | **resolution_status** | `unresolved` |
 | **conversation_status** | `open` |
+| **conversation_started** | `{{formatDate(parseDate(2.date / 1000; "X"); "YYYY-MM-DD HH:mm:ss"; "Asia/Dubai")}}` |
 | **conversation_hash** | `if(get(split(7.result; "|"); 5) != "null"; lower(get(split(7.result; "|"); 5)); lower(2.from.address))` |
 
 ### conversation_id
@@ -490,9 +481,10 @@ However when emails are sent via the Shopify contact form the header sender is:
 | **message_source** | `email` |
 | **channel** | `email` |
 | **message_text** | `{{first(split(2.text; "\nOn "))}}` |
-| **timestamp_utc** | `formatDate(parseDate(2.Date; "X"); "YYYY-MM-DDTHH:mm:ss.SSS[Z]"; "UTC")` |
+| **timestamp_utc** | `{{formatDate(parseDate(now; "X"); "YYYY-MM-DD HH:mm:ss"; "UTC")}}` |
 | **resolution_status** | `unresolved` |
 | **conversation_status** | `open` |
+| **conversation_started** | `{{formatDate(parseDate(2.date / 1000; "X"); "YYYY-MM-DD HH:mm:ss"; "Asia/Dubai")}}` |
 
 No AI classification fields used.
 
