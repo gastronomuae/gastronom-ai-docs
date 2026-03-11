@@ -178,7 +178,7 @@ POST request body:
 {
   "airtable_record_id": "{{Airtable.ID}}",
   "channel": "whatsapp",
-  "message_text": "{{message_text}}",
+  "message_text": "{{replace(11.message_text; newline; "\n")}}",
   "broad_category": "{{broad_category}}",
   "issue_category": "{{issue_category}}",
   "priority": "{{priority}}",
