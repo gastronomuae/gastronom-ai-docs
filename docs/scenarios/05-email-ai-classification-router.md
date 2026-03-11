@@ -133,6 +133,47 @@ Reason:
 - Prevent staff messages entering AI dataset  
 
 ---
+### Airtable Logging — OUTBOUND Messages
+
+When the email is sent by staff (`hello@gastronom.ae` or `ai@gastronom.ae`), the message is written to Airtable without AI classification.
+
+Purpose:
+
+• Preserve full conversation history  
+• Track staff responses  
+• Maintain thread linkage for analytics  
+
+Configuration:
+
+Airtable module  
+Base: **AI Staff – Conversation Engine**  
+Table: **conversation_log**
+
+Field mapping:
+
+| Field | Mapping |
+|------|--------|
+| **conversation_id** | `{{if(length(2.references[]) > 0; 2.references[]; 2.headers.`message-id`[])}}` |
+| **wa_number** | empty |
+| **order_id** | empty |
+| **message_id_external** | `{{2.headers.`message-id`[]}}` |
+| **message_direction** | outbound |
+| **message_source** | email |
+| **message_text** | `{{first(split(2.text; "\nOn "))}}` |
+| **timestamp_utc** | `{{formatDate(parseDate(2.date / 1000; "X"); "YYYY-MM-DD HH:mm:ss"; "Asia/Dubai")}}` |
+| **channel** | email |
+| **conversation_started** | empty |
+| **conversation_hash** | `{{lower(2.from.address)}}` |
+| **label_source** | human_labeled |
+| **agent_name** | hello@gastronom.ae |
+
+Notes:
+
+• OpenAI classification is skipped for outbound messages  
+• These records allow tracking response times and conversation lifecycle  
+• Thread linkage relies on the **References header** when available
+
+---
 
 ## Branch B — INBOUND (Customer)
 
