@@ -186,6 +186,14 @@ This option is useful when:
 
 Once payment is completed, we proceed with delivery.
 
+If the customer selected cash on delivery or pos terminal but prefers to pay online, we can send a secure payment link.
+
+The assistant should:
+• Offer to send a payment link
+• Ask for the order number if it is not provided
+
+The assistant should avoid adding additional delivery instructions when explaining payment links.
+
 ---
 
 ## Payment in Russian Rubles (Bank Transfer)
