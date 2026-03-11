@@ -433,22 +433,24 @@ Create a structured dataset for analytics and AI training.
 
 | Field | Mapping |
 |------|--------|
-| **conversation_id** | `2.Headers → basic → message-id` |
-| **message_id_external** | `2.Headers → basic → message-id` |
+| **conversation_id** | `{{if(length(2.references[]) > 0; 2.references[]; 2.headers.`message-id`[])}}` |
+| **wa_number** | `empty` |
+| **order_id** | `empty` |
+| **message_id_external** | `{{2.headers.`message-id`[]}}` |
 | **message_direction** | `inbound` |
 | **message_source** | `email` |
-| **channel** | `email` |
-| **wa_number** | `empty` |
 | **message_text** | `{{if(length(first(split(2.text; "\nOn "))) > 250; substring(first(split(2.text; "\nOn ")); 0; 250) + "..."; first(split(2.text; "\nOn ")) )}}` |
-| **timestamp_utc** | `{{formatDate(parseDate(2.date / 1000; "X"); "YYYY-MM-DD HH:mm:ss"; "Asia/Dubai")}}` |
 | **broad_category** | `first(split(7.Result; "|"))` |
-| **issue_category** | `trim(get(split(7.Result; "|"); 2))` |
-| **priority** | `trim(get(split(7.Result; "|"); 3))` |
-| **confidence_score** | `trim(get(split(7.Result; "|"); 4))` |
+| **issue_category** | `{{if(trim(get(split(7.result; "|"); 2)) = "null"; ; trim(get(split(7.result; "|"); 2)))}}` |
+| **timestamp_utc** | `{{formatDate(parseDate(2.date / 1000; "X"); "YYYY-MM-DD HH:mm:ss"; "Asia/Dubai")}}` |
 | **resolution_status** | `unresolved` |
 | **conversation_status** | `open` |
+| **escalation_flag** | `{{ifempty(get(split(7.result; "|"); 7); false)}}` |
+| **priority** | `trim(get(split(7.Result; "|"); 3))` |
+| **confidence_score** | `trim(get(split(7.Result; "|"); 4))` |
+| **channel** | `email` |
 | **conversation_started** | `{{formatDate(parseDate(2.date / 1000; "X"); "YYYY-MM-DD HH:mm:ss"; "Asia/Dubai")}}` |
-| **conversation_hash** | `if(get(split(7.result; "|"); 5) != "null"; lower(get(split(7.result; "|"); 5)); lower(2.from.address))` |
+| **conversation_hash** | `if(get(split(7.result;|); 5) != null; lower(get(split(7.result;|); 5)); lower(2.from.address))` |
 
 ### conversation_id
 
