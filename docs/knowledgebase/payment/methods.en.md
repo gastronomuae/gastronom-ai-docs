@@ -29,10 +29,6 @@ Typical UAE banknotes include:
 - 500 AED
 - 1000 AED
 
-For cash on delivery orders, calculate possible change based on common UAE banknotes (10, 20, 50, 100, 500, 1000 AED) and inform the delivery team to prepare change if needed.
-
-Example:
-If order total is 820 AED, the courier should be prepared to provide change from a 1000 AED banknote.
 
 ---
 
@@ -119,3 +115,8 @@ When customers ask about payment options, list the available methods clearly:
 If a customer prefers **RUB payment**, provide the bank details and explain that the amount will be converted using the current exchange rate.
 
 If a customer asks about refunds after online payment, explain that refunds are processed through the payment provider and typically take **3–7 business days**.
+
+For cash on delivery orders, calculate possible change based on common UAE banknotes (10, 20, 50, 100, 500, 1000 AED) and inform the delivery team to prepare change if needed.
+
+Example:
+If order total is 820 AED, the courier should be prepared to provide change from a 1000 AED banknote.
