@@ -330,9 +330,9 @@ other
 ```
 Classify the Instagram direct message below.
 
-Return exactly 4 values separated by | in this order:
+Return exactly 5 values separated by | in this order:
 
-broad_category|issue_category|priority|confidence
+broad_category|issue_category|priority|confidence|escalation_flag
 
 broad_category (choose exactly one):
 
@@ -363,7 +363,29 @@ other = Legitimate message that does not clearly fit above (e.g., job inquiry, g
 
 CONTEXT CONSISTENCY RULE
 
-If the message appears to be part of an ongoing conversation, the issue_category should normally remain the same as the original customer inquiry.
+If the message appears to be part of an ongoing conversation or short reply within a conversation, the issue_category should must remain the same as the original customer inquiry.
+
+
+SHORT MESSAGE CONTEXT RULE
+
+If the new message is very short (for example: numbers, order number, yes, ok, thanks, tomorrow, address, phone number),
+use the recent conversation context to determine the correct issue_category.
+
+Messages that contain only numbers are very likely to be order numbers and should normally inherit the previous support issue_category.
+
+Example:
+
+Customer: "When will my order arrive?"
+Customer: "4177"
+
+→ support | order_status
+
+Customer: "Do you deliver to JVC?"
+Customer: "Yes"
+
+→ support | delivery_area
+
+If the recent conversation context shows an active support inquiry, the message must remain in broad_category = support unless the user clearly changes the topic.
 
 Outbound replies from the store should inherit the issue_category of the customer message they are answering unless the topic clearly changes.
 
@@ -453,7 +475,7 @@ Customer: "Do you deliver to Dubai Marina?"
 Store: "Yes, delivery is available."
 
 Both messages should use:
-support | order_status
+support | delivery_area
 
 
 priority rules:
@@ -469,9 +491,40 @@ If other → low.
 confidence:
 Return a number between 0.0 and 1.0.
 
-Return only the pipe-separated line. No explanation.
+ESCALATION RULES
 
-Message:
+Set escalation_flag = true when human intervention is required.
+
+Escalate in the following situations:
+
+1. issue_category = complaint
+2. issue_category = refund
+3. issue_category = cancellation
+4. broad_category = b2b_sales
+5. broad_category = supplier_prospect
+6. The sender explicitly asks to speak with a human, manager, or support agent.
+
+In all other cases:
+
+escalation_flag = false
+
+
+ESCALATION SAFETY RULE
+
+If broad_category = spam or marketing
+then escalation_flag must always be false.
+
+
+Return only the pipe-separated values.
+Do not include explanations.
+
+The context above represents the most recent conversation messages between the customer and the store.
+Use this context to understand the meaning of the new message.
+
+RECENT CONVERSATION CONTEXT
+{{35.text}}
+
+New Message:
 {{1.entry[].messaging[].message.text}}
 ```
 ---
