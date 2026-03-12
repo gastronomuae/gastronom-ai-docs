@@ -1,0 +1,235 @@
+# Telegram Config Bot – Make.com + Airtable
+
+## Overview
+This automation creates a **Telegram admin bot** that allows you to:
+- View configuration values stored in Airtable
+- Update configuration values directly from Telegram
+- Manage operational settings without editing the automation
+
+The bot acts as a **remote control panel** for your system configuration.
+
+---
+
+# Architecture
+
+Telegram → Make.com → Airtable
+
+The scenario listens for Telegram updates and routes them depending on whether the user:
+- starts the bot
+- views configuration values
+- edits configuration values
+
+---
+
+# Airtable Structure
+
+Table: `config`
+
+| Field | Type | Example |
+|------|------|------|
+| key | text | rub_payment_bank_name_ru |
+| value | text | Райффайзен |
+
+Each configuration parameter is stored as a key/value pair.
+
+---
+
+# Main Scenario Flow
+
+Telegram Watch Updates
+        ↓
+Router
+ ├ /start
+ ├ get_menu
+ ├ set_menu
+ ├ get_
+ └ set_
+
+---
+
+# Command: `/start`
+
+Displays the main admin menu.
+
+Example:
+
+⚙ Config Menu  
+Get Values  
+Set Values
+
+Buttons trigger:
+
+get_menu  
+set_menu
+
+---
+
+# Get Values Flow
+
+get_menu  
+↓  
+Airtable Search Records  
+↓  
+Telegram message with buttons  
+get_<key>
+
+Example button:
+
+rub_payment_bank_name_ru  
+callback_data = get_rub_payment_bank_name_ru
+
+---
+
+# Get Value Route
+
+Router filter:
+
+Callback Query Data starts with get_
+
+Steps:
+
+Extract key  
+↓  
+Search Airtable  
+↓  
+Return value
+
+Example response:
+
+Райффайзен
+
+---
+
+# Set Values Flow
+
+set_menu  
+↓  
+Airtable Search Records  
+↓  
+Telegram message with buttons  
+set_<key>
+
+Example button:
+
+rub_payment_bank_name_ru  
+callback_data = set_rub_payment_bank_name_ru
+
+---
+
+# Update Value Flow
+
+set_<key>  
+↓  
+Extract key  
+↓  
+Ask user for new value  
+↓  
+User sends value  
+↓  
+Search Airtable  
+↓  
+Filter key = config_key  
+↓  
+Update Record  
+↓  
+Confirmation message
+
+Example confirmation:
+
+Updated rub_payment_bank_name_ru → rub_test ✅
+
+---
+
+# Airtable Update Logic
+
+1. Search Records (no formula)
+
+Max records: 50
+
+2. Filter:
+
+key = config_key
+
+3. Update Record:
+
+Record ID = SearchRecord.id  
+value = new_value
+
+This prevents accidental creation of new rows.
+
+---
+
+# Telegram Module Notes
+
+Confirmation message uses:
+
+Chat ID: message.chat.id  
+Text: Updated {{config_key}} → {{config_value}} ✅
+
+Important:
+
+Disable **Advanced Settings** unless using buttons.  
+Otherwise Make may send an empty keyboard and cause an error.
+
+---
+
+# Example Interaction
+
+User:
+/start
+
+Bot:
+⚙ Config Menu  
+Get Values | Set Values
+
+User:
+Set Values
+
+Bot:
+Select config value to change  
+rub_payment_bank_name_ru
+
+User selects:
+rub_payment_bank_name_ru
+
+Bot:
+Enter new value
+
+User:
+rub_test
+
+Bot:
+Updated rub_payment_bank_name_ru → rub_test ✅
+
+---
+
+# Advantages
+
+- Configuration editable without redeploying automation
+- Centralized config storage
+- Simple Telegram admin interface
+- Airtable acts as live configuration database
+
+---
+
+# Future Improvements
+
+Recommended additions:
+
+• /config command to display all key/value pairs  
+• Back to menu button after updates  
+• Friendly labels instead of technical keys  
+• Validation for numeric values or time fields  
+• Audit log table for config changes
+
+---
+
+# Maintenance
+
+To add a new configuration parameter:
+
+1. Add a new row in Airtable `config` table
+2. Provide `key`
+3. Provide initial `value`
+
+The Telegram bot will automatically include it in menus.
