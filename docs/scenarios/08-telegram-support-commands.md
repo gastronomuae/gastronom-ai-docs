@@ -51,6 +51,10 @@ Only process messages that are replies to bot notifications.
 Condition:
 
 message.reply_to_message exists
+OR
+message.text = send
+OR
+message.text starts with /reply
 
 
 This prevents the scenario from triggering on unrelated messages in the Telegram group.
