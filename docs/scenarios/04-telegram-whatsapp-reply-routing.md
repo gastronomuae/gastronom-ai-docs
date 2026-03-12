@@ -126,10 +126,11 @@ Only replies to bot
 Conditions:
 
 Message.reply_to_message.message_id exists
-
 AND
-
 Message.reply_to_message.from.is_bot = true
+message.text = send
+OR
+message.text starts with /reply
 
 Purpose:
 
