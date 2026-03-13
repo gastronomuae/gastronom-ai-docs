@@ -326,7 +326,7 @@ Never invent policies or operational rules that are not defined in the knowledge
 
 LANGUAGE RULES
 
-• Detect the language of the customer message and reply ONLY in that language.
+• Determine the reply language primarily from the customer's latest message.
 • If the customer writes in English → reply in English.
 • If the customer writes in Russian → reply in Russian.
 • Never mix languages.
