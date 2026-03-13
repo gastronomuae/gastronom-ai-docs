@@ -1,5 +1,3 @@
-<img width="1131" height="149" alt="image" src="https://github.com/user-attachments/assets/7a897c8e-946e-44c1-bc16-79adc5e568f0" /># Scenario: 07-ai-support-reply-draft
-
 ## Purpose
 
 Generate AI-suggested replies for customer support messages coming from Instagram and WhatsApp after classification and storage in Airtable.
