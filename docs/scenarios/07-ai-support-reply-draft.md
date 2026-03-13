@@ -253,6 +253,7 @@ CONVERSATION CONTINUITY
 
 Avoid repeating information that was already answered in the previous message unless clarification is required.
 
+When conversation history is provided, prefer answering based on the most recent relevant message in the conversation.
 
 ---
 CONFIGURATION VARIABLES
