@@ -299,7 +299,7 @@ priority | `8.Priority` |
 confidence_score | `8.confidence_score` |
 channel | instagram |
 conversation_started_at | `8.conversation_started_at` |
-conversation_hash | `8.conversation_hash` |
+conversation_hash | `1.message.from.username` |
 label_source | ai_prediction |
 
 ---
@@ -325,7 +325,7 @@ priority | `8.Priority` |
 confidence_score | `8.confidence_score` |
 channel | instagram |
 conversation_started_at | `8.conversation_started_at` |
-conversation_hash | `8.conversation_hash` |
+conversation_hash | `1.message.from.username` |
 label_source | human_labeled |
 
 ---
@@ -448,7 +448,7 @@ priority | `8.Priority` |
 confidence_score | `8.confidence_score` |
 channel | whatsapp_A |
 conversation_started_at | `8.conversation_started_at` |
-conversation_hash | `8.conversation_hash` |
+conversation_hash | `1.message.from.username` |
 label_source | ai_prediction |
 
 ---
@@ -474,5 +474,75 @@ priority | `8.Priority` |
 confidence_score | `8.confidence_score` |
 channel | whatsapp_A |
 conversation_started_at | `8.conversation_started_at` |
-conversation_hash | `8.conversation_hash` |
+conversation_hash | `1.message.from.username` |
 label_source | human_labeled |
+
+## Mapping `conversation_hash` in Scenario 8 (Agent Replies)
+
+In **Scenario 8**, a new Airtable row is created when a human agent sends a reply via Telegram.  
+Unlike inbound messages (which originate from the customer channel such as WhatsApp or Instagram), outbound messages originate from an **agent using Telegram**.
+
+For this reason, the `conversation_hash` field must represent the **sender of the message**, not the conversation thread.
+
+The conversation thread itself is already preserved through the field:
+
+`conversation_id`
+
+This value is inherited from the original inbound message using **Airtable Module 8 (Get Record)**.
+
+---
+
+### Field Responsibilities
+
+| Field | Purpose | Source |
+|------|------|------|
+| `conversation_id` | Conversation thread identifier | Airtable 8 |
+| `conversation_hash` | Sender handle (customer or agent) | Telegram / inbound source |
+| `message_direction` | Indicates inbound vs outbound | Scenario logic |
+
+---
+
+### Why `conversation_hash` comes from Telegram
+
+Inbound messages store the **customer handle** in `conversation_hash`.
+
+Examples:
+unclevanya.uae
++9715XXXXXXX
+instagram_user123
+
+When an agent replies via Telegram, the sender becomes the **Telegram agent**, so we map:
+
+
+conversation_hash → 1.Message.From.UserName
+
+
+Example:
+
+
+vohanjanyan
+
+
+---
+
+### Resulting Conversation Structure
+
+| conversation_id | conversation_hash | message_direction | message_text |
+|---|---|---|---|
+| 7251418034970035 | unclevanya.uae | inbound | Can I get my order now? |
+| 7251418034970035 | vohanjanyan | outbound | Yes, it will arrive shortly |
+| 7251418034970035 | unclevanya.uae | inbound | How long exactly? |
+
+---
+
+### Summary
+
+- `conversation_id` groups all messages belonging to the same conversation.
+- `conversation_hash` identifies the **sender of each message**.
+- For agent replies, `conversation_hash` must be mapped to:
+
+
+1.Message.From.UserName
+
+
+This ensures that outbound messages are correctly attributed to the responding agent while m
