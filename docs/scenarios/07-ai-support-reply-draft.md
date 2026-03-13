@@ -144,7 +144,7 @@ New row
 
 Example formatting:
 
-{{message_direction}}: {{message_text}}
+{{if(17.message_direction = "inbound"; "Customer"; "Store")}}: {{17.message_text}}
 
 
 Example output:
