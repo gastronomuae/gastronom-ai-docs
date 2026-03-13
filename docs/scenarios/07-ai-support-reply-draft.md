@@ -1,4 +1,4 @@
-# Scenario: 07-ai-support-reply-draft
+<img width="1131" height="149" alt="image" src="https://github.com/user-attachments/assets/7a897c8e-946e-44c1-bc16-79adc5e568f0" /># Scenario: 07-ai-support-reply-draft
 
 ## Purpose
 
@@ -12,15 +12,23 @@ The scenario receives structured message data via webhook, generates a suggested
 
 ```
 Instagram / WhatsApp
-        ↓
+↓
 Classification Scenarios
-        ↓
+↓
 Airtable Record Created
-        ↓
+↓
 HTTP Request
-        ↓
+↓
 07-ai-support-reply-draft
-        ↓
+↓
+Load Conversation Context (Airtable Search)
+↓
+Build Context Text (Aggregator)
+↓
+Load Configuration Variables
+↓
+Load Knowledgebase
+↓
 AI Reply Generated
         ↓
 Airtable Updated
@@ -78,36 +86,83 @@ Other categories are ignored:
 - `other`
 
 ---
-# MODULE 2 — Airtable — Get Conversation Record
+# MODULE 2 — Airtable — Search Conversation History
 
-This module retrieves the conversation record created by the inbound channel scenario (Instagram, WhatsApp, or Email).
+This module retrieves recent messages from the same conversation in order to provide context for the AI reply generator.
 
 ### Module
-Airtable → Get a Record
+Airtable → Search Records
 
 ### Configuration
 
 | Field | Value |
 |------|------|
 Base | AI Staff – Conversation Engine |
-Table | Imported table |
-Record ID | {{airtable_record_id}} |
+Table | conversation_log |
+Formula | `{conversation_id} = "{{conversation_id}}"` |
+Sort | timestamp_utc descending |
+Limit | recent messages |
 
 ### Purpose
 
-This record contains the structured conversation data used by the AI reply generator.
+Customer messages often appear as short follow-ups that depend on previous conversation context.
 
-Fields retrieved include:
+Examples include:
 
-- message_source
-- message_text
-- issue_category
-- broad_category
-- customer_sentiment
-- Priority
+- order numbers
+- short confirmations
+- delivery location references
+- follow-up questions
+
+Retrieving recent conversation history allows the AI model to correctly interpret these messages.
+
+Example conversation history:
+Customer: Do you deliver to JVC?
+Store: Yes, delivery is available.
+Customer: How long does it take?
+
+
+Without context the last message could be ambiguous.  
+With context the AI understands the question refers to delivery timing for JVC.
+
 
 ---
-# MODULE 3 — Airtable — Load Configuration Variables
+# MODULE 3 — Tools — Conversation History Aggregator
+
+This module converts the retrieved conversation history into a single text block that can be passed to the AI prompt.
+
+### Module
+Tools → Text Aggregator
+
+### Configuration
+
+Source module:
+
+Airtable – Search Records
+
+Row separator:
+
+New row
+
+Example formatting:
+
+{{message_direction}}: {{message_text}}
+
+
+Example output:
+
+
+Customer: Do you deliver to JVC?
+Store: Yes, delivery is available.
+Customer: How long does it take?
+
+
+### Purpose
+
+The aggregated text is passed to the OpenAI prompt so the AI assistant can unders
+
+---
+# MODULE 4 — Airtable — Load Configuration Variables
 
 This module loads operational configuration values used by the AI assistant.
 
@@ -135,7 +190,7 @@ delivery_chat_cutoff | 21:00 |
 warehouse_location | https://maps.app.goo.gl/49Wvp86JqcqjVpn9A |
 
 ---
-# MODULE 4 Tools — Text Aggregator (Configuration Builder)
+# MODULE 5 Tools — Text Aggregator (Configuration Builder)
 
 This module converts the configuration table rows into a single structured text block used by the AI prompt.
 
@@ -164,7 +219,7 @@ delivery_chat_cutoff = 21:00
 warehouse_location = https://maps.app.goo.gl/49Wvp86JqcqjVpn9A
 
 ---
-# MODULE 5 HTTP — Load Knowledgebase
+# MODULE 6 HTTP — Load Knowledgebase
 
 This module retrieves the compiled Gastronom knowledgebase from GitHub.
 
@@ -361,6 +416,22 @@ Customer message:
 {{message_text}}
 ```
 
+## Conversation Context Usage
+
+The AI assistant receives recent conversation history before generating a reply.
+
+This allows the assistant to correctly interpret short follow-up messages.
+
+Examples:
+
+| Message | Without Context | With Context |
+|------|------|------|
+4177 | unclear | order_status |
+Yes | unclear | delivery_area |
+How long? | ambiguous | delivery_time |
+
+The assistant should always use the most recent relevant message in the conversation when interpreting the customer's request.
+
 ---
 
 # Step 3 — Airtable Update
@@ -463,6 +534,8 @@ Current implementation:
 ```
 ✓ Webhook trigger
 ✓ Support filter
+✓ Conversation history retrieval
+✓ Context aggregation
 ✓ OpenAI response generation
 ✓ Airtable record update
 ✓ Telegram notification
