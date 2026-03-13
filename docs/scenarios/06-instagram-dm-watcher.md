@@ -1,4 +1,3 @@
-
 # Scenario 6 – Instagram DM Watcher
 
 ```
@@ -21,11 +20,12 @@ The automation performs the following:
 
 - Capture every inbound Instagram DM via webhook
 - Enrich sender data using Instagram Graph API
-- Classify message intent using AI
+- Retrieve recent conversation history for context
+- Classify message intent using AI using conversation context
 - Log messages in Airtable
 - Notify the team in Telegram when action is required
 
-This ensures Instagram inquiries are tracked consistently alongside other support channels such as email and WhatsApp.
+This ensures Instagram inquiries are tracked consistently alongside other support channels such as email and WhatsApp while preserving full conversation context for accurate classification.
 
 ---
 
@@ -290,7 +290,58 @@ Logic:
 
 ---
 
-# Module 5 – AI Message Classification
+# Module 5 – Conversation Context Retrieval
+
+Before sending the message to the AI classification module, the scenario retrieves recent conversation history from Airtable.
+
+This allows the classifier to understand whether the message is part of an ongoing conversation and helps maintain consistent issue categorization across multiple messages.
+
+Many customer replies are extremely short and rely on previous context, for example:
+
+- order numbers
+- confirmations
+- short acknowledgements
+- delivery details
+- addresses
+
+Without context these messages could be incorrectly classified.
+
+---
+
+## Airtable Lookup
+
+The scenario searches the **conversation_log** table for recent messages belonging to the same conversation.
+
+Lookup parameters:
+
+| Field | Condition |
+|------|------|
+| conversation_id | sender_id |
+| Sort | timestamp descending |
+| Limit | recent messages |
+
+This returns the most recent conversation history between the customer and the store.
+
+---
+
+## Context Formatting
+
+The retrieved messages are formatted into a text block and passed to the AI classifier as conversation context.
+
+Example:
+
+Customer: When will my order arrive?
+Store: It should arrive today before 6pm
+Customer: 4177
+
+Customer: When will my order arrive?
+Store: It should arrive today before 6pm
+Customer: 4177
+
+
+---
+
+# Module 6 – AI Message Classification (Context Aware)
 
 OpenAI Model: gpt-5-nano
 
@@ -529,15 +580,15 @@ New Message:
 ```
 ---
 
-# Module 6 – Router
+# Module 7 – Router
 
-Messages are split into two processing routes.
+Messages are split into two processing routes after AI classification.
 
-After the OpenAI classification module, a Router is used to split the scenario into two processing paths based on the AI-detected message category.
+Because the classifier receives full conversation context, routing decisions are based on the true intent of the message rather than the raw text alone.
 
-The purpose of this routing step is to ensure that important messages requiring human attention trigger alerts, while lower-priority or irrelevant messages are simply logged for record keeping.
+This prevents short follow-ups (such as order numbers or confirmations) from being incorrectly routed as unrelated messages.
 
-Why Routing Is Used
+## Why Routing Is Used
 
 Not every Instagram DM requires immediate action. The AI classification determines whether a message is important for the business (customer support, sales, supplier inquiries) or non-critical (general chatter, marketing outreach, spam, etc.).
 
@@ -565,7 +616,7 @@ This route is configured as the fallback route, meaning it will process any mess
 
 ---
 
-# Module 7 – Telegram Notification
+# Module 8 – Telegram Notification
 
 For messages classified as important, the scenario sends a notification to the internal support Telegram group.
 This allows the team to quickly see and respond to relevant Instagram inquiries without needing to monitor Instagram directly.
@@ -586,7 +637,7 @@ Parse Mode: HTML disabled (plain text recommended)
 
 ---
 
-# Module 8 – Airtable Logging
+# Module 9 – Airtable Logging
 
 Base: AI Staff – Conversation Engine  
 Table: conversation_log
@@ -594,7 +645,9 @@ Table: conversation_log
 Purpose:
 
 - Maintain centralized conversation history
-- Enable analytics and AI training
+- Preserve full conversation context across channels
+- Enable accurate AI classification for follow-up messages
+- Support analytics and AI training
 
 ---
 
@@ -619,6 +672,11 @@ Purpose:
 | conversation_started | {{6.timestamp}} |
 | conversation_hash | sender_id |
 
+Note:
+
+`conversation_id` links all messages from the same Instagram user into a single conversation thread.
+
+This identifier is used by the automation when retrieving recent conversation history to provide context to the AI classifier.
 
 ---
 
