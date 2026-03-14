@@ -289,6 +289,7 @@ message_text | `8.ai_suggested_reply` |
 broad_category | `8.broad_category` |
 timestamp_utc | `formatDate(now; YYYY-MM-DD HH:mm:ss)` |
 agent_name | `1.Message: From: User Name` |
+conversation_status | waiting_customer |
 ai_reply_used | true |
 escalation_flag | false |
 customer_sentiment | `8.customer_sentiment` |
@@ -315,6 +316,7 @@ message_text | `1.Message: Text` |
 broad_category | `8.broad_category` |
 timestamp_utc | `formatDate(now; YYYY-MM-DD HH:mm:ss)` |
 agent_name | `1.Message: From: User Name` |
+conversation_status | waiting_customer |
 ai_reply_used | false |
 escalation_flag | true |
 customer_sentiment | `8.customer_sentiment` |
@@ -438,6 +440,7 @@ message_text | `8.ai_suggested_reply` |
 broad_category | `8.broad_category` |
 timestamp_utc | `formatDate(now; YYYY-MM-DD HH:mm:ss)` |
 agent_name | `1.Message: From: User Name` |
+conversation_status | waiting_customer |
 ai_reply_used | true |
 escalation_flag | false |
 customer_sentiment | `8.customer_sentiment` |
@@ -464,6 +467,7 @@ message_text | `1.Message: Text` |
 broad_category | `8.broad_category` |
 timestamp_utc | `formatDate(now; YYYY-MM-DD HH:mm:ss)` |
 agent_name | `1.Message: From: User Name` |
+conversation_status | waiting_customer |
 ai_reply_used | false |
 escalation_flag | true |
 customer_sentiment | `8.customer_sentiment` |
