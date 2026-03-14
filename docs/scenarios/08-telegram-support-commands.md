@@ -53,8 +53,6 @@ Condition:
      {{1.message.reply_to_message.message_id}} exists
 AND
      {{1.message.reply_to_message.from.username}} exists
-OR
-     message.text = send
 ```
 This prevents the scenario from triggering on unrelated messages in the Telegram group.
 
@@ -157,7 +155,7 @@ escalation_flag | false |
 
 ---
 
-## Route 2 — Custom Reply (/reply)
+## Route 2 — Custom Reply
 
 Condition:
 
@@ -303,7 +301,7 @@ label_source | ai_prediction |
 
 ---
 
-# Airtable Record — Instagram - Custom Reply (/reply)
+# Airtable Record — Instagram - Custom Reply
 
 Used when the agent writes a custom reply in Telegram.
 
@@ -452,7 +450,7 @@ label_source | ai_prediction |
 
 ---
 
-# Airtable Record — WhatsApp - Custom Reply (/reply)
+# Airtable Record — WhatsApp - Custom Reply
 
 Used when the agent writes a custom reply in Telegram.
 
