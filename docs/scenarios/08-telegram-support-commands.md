@@ -49,11 +49,13 @@ This module listens to all messages posted in the support Telegram group.
 Only process messages that are replies to bot notifications.
 
 Condition:
-
-message.reply_to_message exists
+```
+     {{1.message.reply_to_message.message_id}} exists
+AND
+     {{1.message.reply_to_message.from.username}} exists
 OR
-message.text = send
-
+     message.text = send
+```
 This prevents the scenario from triggering on unrelated messages in the Telegram group.
 
 ---
