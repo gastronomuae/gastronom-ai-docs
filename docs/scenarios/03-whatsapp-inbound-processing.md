@@ -182,7 +182,8 @@ POST request body:
   "broad_category": "{{broad_category}}",
   "issue_category": "{{issue_category}}",
   "priority": "{{priority}}",
-  "message_direction": "inbound"
+  "message_direction": "inbound",
+  "customer_phone": "{{11.wa_number}}"
 }
 ```
 
