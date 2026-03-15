@@ -181,8 +181,10 @@ POST request body:
 "message_text": "{{11.message_text}}",
 "broad_category": "{{11.broad_category}}",
 "issue_category": "{{11.issue_category}}",
+"sentiment": "{{ifempty(11.customer_sentiment; "unknown")}}",
 "priority": "{{11.Priority}}",
 "message_direction": "{{11.message_direction}}",
+"timestamp_utc": "{{11.timestamp_utc}}",
 "customer_phone": "{{11.wa_number}}",
 "conversation_hash": "{{11.conversation_hash}}"
 }
