@@ -734,6 +734,11 @@ Content type | JSON |
 "message_text": "{{replace(22.message_text; newline; "\n")}}",
 "broad_category": "{{22.broad_category}}",
 "issue_category": "{{22.issue_category}}",
+"sentiment": "{{ifempty(22.customer_sentiment; "unknown")}}",
 "priority": "{{22.Priority}}",
-"message_direction": "{{22.message_direction}}"
+"message_direction": "{{22.message_direction}}",
+"timestamp_utc": "{{22.timestamp_utc}}",
+"customer_phone": ""{{replace(22.wa_number; newline; "\n")}}"",
+"conversation_hash": "{{22.conversation_hash}}"
 }
+```
