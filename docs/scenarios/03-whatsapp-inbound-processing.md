@@ -176,14 +176,15 @@ POST request body:
 
 ``` json
 {
-  "airtable_record_id": "{{Airtable.ID}}",
-  "channel": "whatsapp",
-  "message_text": "{{replace(11.message_text; newline; "\n")}}",
-  "broad_category": "{{broad_category}}",
-  "issue_category": "{{issue_category}}",
-  "priority": "{{priority}}",
-  "message_direction": "inbound",
-  "customer_phone": "{{11.wa_number}}"
+"airtable_record_id": "{{11.id}}",
+"channel": "whatsapp_A",
+"message_text": "{{11.message_text}}",
+"broad_category": "{{11.broad_category}}",
+"issue_category": "{{11.issue_category}}",
+"priority": "{{11.Priority}}",
+"message_direction": "{{11.message_direction}}",
+"customer_phone": "{{11.wa_number}}",
+"conversation_hash": "{{11.conversation_hash}}"
 }
 ```
 
