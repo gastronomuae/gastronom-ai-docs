@@ -30,8 +30,8 @@ Load Knowledgebase
 AI Reply Generated
         ↓
 Airtable Updated
-        ↓
-Telegram Notification
+     ├ Telegram Notification
+     └ Shopify Search Orders -> Telegram Notification
 ```
 
 ---
@@ -467,13 +467,16 @@ OpenAI result
 
 ---
 
-# Step 4 — Telegram Notification
+# Step 5 — Router
 
-Module:
+A -> Normal support flow (to send a notification to support group chat in telegram)
+B -> if order number available, search for order details in shopify and then send an escalation message
 
-```
-Telegram Bot → Send Message
-```
+---
+
+# Step 5.A — Telegram Notification (Gastronom • Logistics Group)
+
+Chat ID: -5133624518
 
 Example message format:
 
@@ -529,6 +532,51 @@ send
 | priority | Urgency |
 | ai_suggested_reply | AI generated response |
 | ai_reply_used | Tracks whether AI suggestion was used |
+
+---
+
+# Step 5.B — Shopify Search Orders
+
+## Filter - Dispatcher escalation
+
+```
+{{20.needs_dispatch_check}} = true
+AND
+{{20.order_number}} Exists
+```
+
+# Step 6 — Send Telegram Message (Gastronom • Logistics Group)
+
+Chat ID: -5133624518
+
+Example message format:
+
+```
+📦 ORDER CHECK REQUIRED
+
+🧾 #4196
+👤 Kristina Chernova
+📲 
+@ unclevanya.uae
+📢 instagram
+📍 Sama Tower
+💰 226.5
+
+Customer message:
+Здравствуйте.
+Мой номер заказа #4196
+
+@dispatcher please confirm status
+🆔 rec0W4mpLQEJsFsWV
+
+Commands:
+send
+/reply your text
+```
+
+Purpose:
+
+Escalate to dispatcher and tag him fro action
 
 ---
 
