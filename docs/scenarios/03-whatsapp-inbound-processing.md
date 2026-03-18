@@ -14,6 +14,7 @@ It acts as the **ingestion and classification pipeline**.
 
 # High-Level Flow
 
+```
 WhatsApp Webhook\
 ↓\
 Filter inbound messages\
@@ -25,7 +26,7 @@ AI classification\
 Airtable create record\
 ↓\
 Trigger Scenario 07 (AI reply generator)
-
+```
 ------------------------------------------------------------------------
 
 # Trigger
@@ -112,7 +113,11 @@ Variables created for easier mapping later in the scenario.
 
 This converts the Unix timestamp from the webhook into Dubai local time.
 
-------------------------------------------------------------------------
+---
+
+
+
+---
 
 # Step 3 --- AI Classification
 
@@ -190,6 +195,7 @@ POST request body:
 }
 ```
 
+--- 
 Scenario 07 then:
 
 1.  Retrieves the Airtable record\
