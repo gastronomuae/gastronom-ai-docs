@@ -1,31 +1,41 @@
-# Scenario 03 --- WhatsApp A → AI Classification → Airtable → Trigger AI Reply
+# Scenario 03 — WhatsApp A → Buffer → Aggregate → AI Classification → Airtable → Trigger AI Reply
 
 ## Purpose
+This scenario listens to incoming WhatsApp messages sent to the automated WhatsApp Business number (WA A), temporarily buffers them, merges multiple customer messages sent within a short time window into a single combined message, classifies the merged message using AI, stores it in Airtable, and triggers **Scenario 07** to generate an AI support reply draft.
 
-This scenario listens to incoming WhatsApp messages sent to the
-automated WhatsApp Business number (WA A), classifies the message using
-AI, stores it in Airtable, and triggers **Scenario 07** to generate an
-AI support reply draft.
-
-This scenario **does not send replies itself**.\
-It acts as the **ingestion and classification pipeline**.
+This scenario **does not send the customer reply directly itself**.  
+It acts as the **buffering, aggregation, ingestion, and classification pipeline**.
 
 ------------------------------------------------------------------------
 
 # High-Level Flow
 
 ```
-WhatsApp Webhook\
-↓\
-Filter inbound messages\
-↓\
-Extract variables\
-↓\
-AI classification\
-↓\
-Airtable create record\
-↓\
+WhatsApp Webhook
+↓
+Filter inbound messages
+↓
+Extract variables
+↓
+Airtable create record (message_buffer)
+↓
+Sleep 30 seconds
+↓
+Airtable search records (same wa_number)
+↓
+Text Aggregator (merge messages)
+↓
+Filter latest run only
+↓
+AI classification
+↓
+Airtable create record (conversation_log / support_messages)
+↓
 Trigger Scenario 07 (AI reply generator)
+↓
+Airtable search records again (same wa_number)
+↓
+Airtable delete buffered records
 ```
 ------------------------------------------------------------------------
 
@@ -112,6 +122,17 @@ Variables created for easier mapping later in the scenario.
     {{formatDate(parseDate(4.entry[].changes[].value.messages[].timestamp; "X"); "YYYY-MM-DD HH:mm:ss"; "Asia/Dubai")}}
 
 This converts the Unix timestamp from the webhook into Dubai local time.
+
+---
+
+# Step 3 --- Airtable Create Record (Message Buffer)
+
+Table: message_buffer
+
+Purpose:
+Store every inbound WhatsApp message first in a temporary buffer table so that multiple messages sent within a short period can be merged before AI processing.
+
+
 
 
 ---
