@@ -82,10 +82,11 @@ Example payload:
     Message filter only
 
 **Conditions:**
-
+```
     4.entry[].changes[].field = messages
     AND
     4.entry[].changes[].value.messages exists
+```
 
 **Purpose**
 
@@ -132,12 +133,97 @@ Table: message_buffer
 Purpose:
 Store every inbound WhatsApp message first in a temporary buffer table so that multiple messages sent within a short period can be merged before AI processing.
 
+| Field | Value |
+|------|--------|
+| **wa_number** | {{wa_number}} |
+| **message_text** | {{message_text}} |
+| **timestamp** | {{timestamp}} |
+| **processed** | false / empty |
 
+---
+
+# Step 4 --- Sleep (Buffer Window)
+
+Value: 30 seconds
+
+Purpose: Allow the customer to send follow-up messages in quick succession before processing begins.
+
+Example:
+```
+“Hello”
+“Where is my order?”
+“4201”
+```
+These should be treated as one grouped support message instead of three independent AI requests.
+
+---
+
+# Step 5 --- Airtable Search Records (Message Buffer Lookup)
+
+Table: message_buffer
+All rows - sorted by timestamp (ascending) 
+Formula: NOT({processed})
+
+
+Purpose:
+Retrieve all buffered messages from the table that are not processed.
+
+---
+## Filter - same wa_number
+{{17.wa_number}} = {{13.wa_number}}
+phone number from table we searhced matches phone number from sender (webhook -> set varialbles wa_number)
+
+---
+
+# Step 6 --- Text Aggregator (Merge Messages)
+
+Source module: Airtable Search Records (message_buffer)
+
+Grouped by: wa_number
+Text field aggregated: message_text
+Row separator: New row
+Stop processing after an empty aggregation: Yes
+
+Example output:
+
+Hello
+Where is my order?
+4201
+
+Purpose:
+Combine messages togetehr as a one text, each message starts with new line. So evantuallt we can send as a one mesgae to Telegram, rather than each message as a separate note.
+
+---
+
+## Filter - Latest Run Only
+```
+{{18.text}}
+Ends with (case insensitive)
+{{13.message_text}}
+```
+
+Purpose:
+Because the scenario is triggered once per inbound message, several parallel runs may exist at the same time.
+This filter ensures that only the run triggered by the latest message in the buffered sequence continues downstream.
+
+Example:
+- Combined text:
+    Hello, where is my order?\n4201
+- Current message:
+    4201
+
+Only the run whose original message_text matches the end of the aggregated text is allowed to proceed.
+
+This prevents:
+
+- duplicate AI calls
+- duplicate Airtable merged records
+- duplicate Telegram notifications
 
 
 ---
 
-# Step 3 --- AI Classification
+# Step 7 --- AI Classification
 
 **Module:** OpenAI
 
@@ -158,33 +244,32 @@ These values are then mapped into Airtable fields.
 
 ------------------------------------------------------------------------
 
-# Step 4 --- Airtable Create Record
+# Step 8 --- Airtable Create Record
 
 **Module:** Airtable → Create Record
 
 Table: `support_messages`
 
-Fields mapped:
+| Field | Value |
+|------|--------|
+| **channel ** | whatsapp |
+| **message_text ** | {{message_text}} |
+| **wa_number** | {{wa_number}} |
+| **timestamp** | {{timestamp}} |
+| **broad_category** | OpenAI result |
+| **issue_category** | OpenAI result |
+| **priority** | OpenAI result |
+| **confidence** | OpenAI result |
+| **escalation_flag** | OpenAI result |
+| **message_direction** | inbound |
 
-  Field               Value
-  ------------------- ------------------
-  channel             whatsapp
-  message_text        {{message_text}}
-  wa_number           {{wa_number}}
-  timestamp           {{timestamp}}
-  broad_category      OpenAI result
-  issue_category      OpenAI result
-  priority            OpenAI result
-  confidence          OpenAI result
-  escalation_flag     OpenAI result
-  message_direction   inbound
 
 The Airtable record ID generated here becomes the **primary reference ID
 for the conversation**.
 
 ------------------------------------------------------------------------
 
-# Step 5 --- Trigger Scenario 07 (AI Reply Draft)
+# Step 9 --- Trigger Scenario 07 (AI Reply Draft)
 
 **Module:** HTTP → Make a Request
 
@@ -221,7 +306,39 @@ Scenario 07 then:
 3.  Updates Airtable with `ai_suggested_reply`\
 4.  Sends a Telegram notification
 
-------------------------------------------------------------------------
+---
+
+# Step 10 --- Airtable Search Records Again (Buffer Cleanup)
+
+Table: message_buffer
+
+Formula: Search all buffered rows for the same wa_number (same as in step 10, just with different formula)
+```
+{wa_number} = "{{13.wa_number}}"
+```
+
+Purpose:
+Re-fetch buffered records after the merged conversation has already been logged and Scenario 07 has been triggered.
+This second search is used only for cleanup.
+
+---
+
+# Step 11 --- Airtable Delete Record(s) (Buffer Cleanup)
+
+Purpose: Delete all buffered rows returned by the cleanup search.
+
+This ensures:
+
+- next customer message starts a fresh buffer window
+- old messages are not merged with future ones
+- buffer table remains temporary and lightweight
+
+Important:
+
+- Cleanup happens after OpenAI and HTTP trigger
+- Otherwise downstream modules may execute multiple times due to multi-bundle search results
+
+---
 
 # Resulting System Architecture
 
