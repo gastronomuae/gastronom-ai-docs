@@ -84,7 +84,7 @@ Other categories are ignored:
 - `other`
 
 ---
-# MODULE 2 — Airtable — Search Conversation History
+# MODULE 17 — Airtable — Search Conversation History
 
 This module retrieves recent messages from the same conversation in order to provide context for the AI reply generator.
 
@@ -125,7 +125,7 @@ With context the AI understands the question refers to delivery timing for JVC.
 
 
 ---
-# MODULE 3 — Tools — Conversation History Aggregator
+# MODULE 18 — Tools — Conversation History Aggregator
 
 This module converts the retrieved conversation history into a single text block that can be passed to the AI prompt.
 
@@ -160,7 +160,18 @@ Customer: How long does it take?
 The aggregated text is passed to the OpenAI prompt so the AI assistant can unders
 
 ---
-# MODULE 4 — Airtable — Load Configuration Variables
+# MODULE 18 — Text Parser - match Pattern - extract order number
+
+Pattern: (?:#|order\s*)?([0-9]{4,6})
+Global Match = Yes
+Case Sensitive = No
+Multline = No
+Singleline = No
+Continue the execution of the route even if the module finds no matches = Yes
+Text = {{18.text}}
+
+---
+# MODULE 14 — Airtable — Load Configuration Variables
 
 This module loads operational configuration values used by the AI assistant.
 
@@ -188,7 +199,7 @@ delivery_chat_cutoff | 21:00 |
 warehouse_location | https://maps.app.goo.gl/49Wvp86JqcqjVpn9A |
 
 ---
-# MODULE 5 Tools — Text Aggregator (Configuration Builder)
+# MODULE 16 Tools — Text Aggregator (Configuration Builder)
 
 This module converts the configuration table rows into a single structured text block used by the AI prompt.
 
@@ -217,7 +228,7 @@ delivery_chat_cutoff = 21:00
 warehouse_location = https://maps.app.goo.gl/49Wvp86JqcqjVpn9A
 
 ---
-# MODULE 6 HTTP — Load Knowledgebase
+# MODULE 15 HTTP — Load Knowledgebase
 
 This module retrieves the compiled Gastronom knowledgebase from GitHub.
 
@@ -230,7 +241,7 @@ https://raw.githubusercontent.com/gastronomuae/gastronom-ai-docs/main/docs/knowl
 Method: Get
 
 ---
-# MODULE 7 Set Variable — order_number
+# MODULE 36 Set Variable — order_number
 
 Purpose:
 Extract a 4-digit order number from the customer message so we can decide whether to search Airtable by order number or by phone.
@@ -255,7 +266,7 @@ Result - order_number = Customer: When will you deliver?
 This is why the router filter must also check for numeric length.
 
 ---
-# MODULE 8 Flow control → Router (IF / ELSE)
+# MODULE 33 Flow control → Router (IF / ELSE)
 
 Two branches:
 - Branch 1 → order number detected
@@ -271,13 +282,13 @@ Filter condition:
 AND
 length({{36.order_number}}) = 4
 AND
-{{36.order_number}} matches pattern ^\d{4}$
+{{36.order_number}} matches pattern ^\d{4,6}$
 ```
 
 This ensures that only 4-digit numbers trigger the order search.
 If true → search Airtable using order number.
 
-### Airtable → Search records — Order Number Branch
+### Airtable 34 → Search records — Order Number Branch
 
 Table : Delivery Orders
 
@@ -302,7 +313,7 @@ delivery_address: Sulafa Tower 902
 ---
 ## Branch 2 - ELSE Branch — Search Order by Phone
 
-### Airtable → Search records — Phone Number Branch
+### Airtable 35 → Search records — Phone Number Branch
 
 Table : Delivery Orders
 
@@ -319,7 +330,7 @@ This allows the AI to still find the order when the customer asks something like
 without mentioning the order number.
 
 
-# MODULE 9 Flow Control → Merge
+# MODULE 46 Flow Control → Merge
 
 Purpose: Both branches must produce a single unified object called:
 
@@ -346,7 +357,7 @@ These values are then used in the AI prompt:
 These fields populate the ORDER CONTEXT (Dispatcher Order Table) section of the prompt.
 
 ---
-# Step 2 — OpenAI Reply Generation
+# Step 2 — OpenAI Reply Generation module 8
 
 Module:
 
@@ -634,7 +645,13 @@ The assistant should always use the most recent relevant message in the conversa
 
 ---
 
-# Step 3 — Airtable Update
+# Step 3 — Json Parse 20 
+
+JSON String: {{8.choices[].message.content}}
+
+---
+
+# Step 4 — Airtable Update 9 
 
 Module:
 
@@ -662,14 +679,14 @@ OpenAI result
 
 ---
 
-# Step 5 — Router
+# Step 5 — Router 25
 
 A -> Normal support flow (to send a notification to support group chat in telegram)
 B -> if order number available, search for order details in shopify and then send an escalation message
 
 ---
 
-# Step 5.A — Telegram Notification (Gastronom • Logistics Group)
+# Step 5.A — Telegram Notification 12 (Gastronom • Logistics Group)
 
 Chat ID: -5133624518
 
@@ -730,7 +747,7 @@ send
 
 ---
 
-# Step 5.B — Shopify Search Orders
+# Step 5.B — Shopify Search Orders 29
 
 ## Filter - Dispatcher escalation
 
@@ -740,7 +757,7 @@ AND
 {{20.order_number}} Exists
 ```
 
-# Step 6 — Send Telegram Message (Gastronom • Logistics Group)
+# Step 6 — Send Telegram Message 30 (Gastronom • Logistics Group)
 
 Chat ID: -5133624518
 
