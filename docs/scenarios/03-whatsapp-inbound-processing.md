@@ -39,9 +39,7 @@ Airtable delete buffered records
 ```
 ------------------------------------------------------------------------
 
-# Trigger
-
-**Module:** Webhooks → Custom Webhook
+# Trigger - Module 4 - Webhooks → Custom Webhook
 
 This webhook receives events from the **Meta WhatsApp Business Cloud
 API**.
@@ -102,7 +100,7 @@ Only real inbound customer messages pass through.
 
 # Step 2 --- Extract Variables
 
-**Module:** Tools → Set Multiple Variables
+**Module: 13** Tools → Set Multiple Variables
 
 Variables created for easier mapping later in the scenario.
 
@@ -126,7 +124,7 @@ This converts the Unix timestamp from the webhook into Dubai local time.
 
 ---
 
-# Step 3 --- Airtable Create Record (Message Buffer)
+# Step 3 --- Airtable 35 Create Record (Message Buffer)
 
 Table: message_buffer
 
@@ -142,7 +140,7 @@ Store every inbound WhatsApp message first in a temporary buffer table so that m
 
 ---
 
-# Step 4 --- Sleep (Buffer Window)
+# Step 4 --- Sleep 33 (Buffer Window)
 
 Value: 30 seconds
 
@@ -158,7 +156,7 @@ These should be treated as one grouped support message instead of three independ
 
 ---
 
-# Step 5 --- Airtable Search Records (Message Buffer Lookup)
+# Step 5 --- Airtable 17 Search Records (Message Buffer Lookup)
 
 Table: message_buffer
 All rows - sorted by timestamp (ascending) 
@@ -175,7 +173,7 @@ phone number from table we searhced matches phone number from sender (webhook ->
 
 ---
 
-# Step 6 --- Text Aggregator (Merge Messages)
+# Step 6 --- Text Aggregator 18 (Merge Messages)
 
 Source module: Airtable Search Records (message_buffer)
 
@@ -195,6 +193,40 @@ Combine messages togetehr as a one text, each message starts with new line. So e
 
 ---
 
+# Step 7 --- Airtable Search rcords 47 (Airtable Lookup)
+
+The scenario searches the **conversation_log** table for recent messages belonging to the same conversation.
+
+Lookup parameters:
+
+| Field | Condition |
+|------|------|
+| Sort | timestamp ascending |
+| Limit | 4 |
+| Formula | {conversation_hash} = "{{13.wa_number}}" |
+
+This returns the most recent conversation history between the customer and the store.
+
+---
+
+# Step 8 --- Tools - Text Aggregator 48 - Context Formatting
+
+The retrieved messages are formatted into a text block and passed to the AI classifier as conversation context.
+Source Module: Airtable 47
+Row separator: New row
+Text: {{47.conversation_hash}}: {{47.message_text}}
+
+Example:
+
+Customer: When will my order arrive?
+Store: It should arrive today before 6pm
+Customer: 4177
+
+Customer: When will my order arrive?
+Store: It should arrive today before 6pm
+Customer: 4177
+
+---
 ## Filter - Latest Run Only
 ```
 {{18.text}}
@@ -220,10 +252,9 @@ This prevents:
 - duplicate Airtable merged records
 - duplicate Telegram notifications
 
-
 ---
 
-# Step 7 --- AI Classification
+# Step 7 --- OpenAI Classification 44
 
 **Module:** OpenAI
 
@@ -242,9 +273,204 @@ Example output:
 
 These values are then mapped into Airtable fields.
 
+## Prompt
+```
+Classify the WhatsApp message below.
+
+Return exactly 5 values separated by | in this order:
+
+broad_category|issue_category|priority|confidence|escalation_flag
+
+broad_category (choose exactly one):
+
+support
+supplier_prospect
+b2b_sales
+marketing
+spam
+other
+
+Definitions:
+
+support = Customer inquiry related to product availability, order status, delivery, payment, refund, complaint, store location, working hours, or any retail purchase.
+
+b2b_sales = A business buyer (restaurant, hotel, nursery, catering, retail shop, distributor, reseller) asking to purchase our products, request wholesale price list, MOQ, delivery terms, or partnership to BUY from us.
+
+supplier_prospect = Producer, factory, exporter, or brand offering PHYSICAL GOODS supply to us, asking to distribute their products or send catalog / commercial offer.
+
+marketing = Service providers, agencies, influencers, SEO, advertising offers, collaboration proposals, digital marketing, affiliate offers, traffic generation.
+
+spam = Scam, crypto, suspicious links, fake courier warning, impersonation, irrelevant bulk messages.
+
+other = Legitimate message that does not clearly fit above (e.g., job inquiry, greeting without context).
+
+---
+
+IMPORTANT CLASSIFICATION RULES
+
+CONTEXT CONSISTENCY RULE
+
+If the message appears to be part of an ongoing conversation, the issue_category should normally remain the same as the original customer inquiry.
+
+Outbound replies from the store should inherit the issue_category of the customer message they are answering unless the topic clearly changes.
+
+Do not change issue_category unless the customer explicitly introduces a new topic.
+
+If the message contains only a greeting (e.g., "Hi", "Hello", "Здравствуйте") without any additional question or context →  
+other | null | low | 0.80
+
+If a greeting message contains an additional question about products, delivery, orders, or payment in the same message, ignore the greeting and classify based on the question.
+
+Examples:
+
+- If asking about job / вакансии → other | null | low
+- If asking about product availability → support | product_question
+- If asking about order delay → support | order_status
+- If complaining about delivery or wrong product → support | complaint
+- If business wants to BUY from us → b2b_sales (priority MUST be high)
+- If producer wants to SELL goods to us → supplier_prospect
+
+Do not use "other" if the message clearly relates to a retail purchase or customer support.
+
+If the message relates to:
+• product availability  
+• delivery  
+• payment  
+• order timing  
+• order confirmation  
+• store information  
+
+it must be classified as support with the appropriate issue_category.
+
+---
+
+DELIVERY / SERVICE QUESTIONS
+
+Questions about delivery availability, delivery areas, shipping coverage, or whether delivery works in a specific location must be classified as:
+
+support | delivery_area
+
+Examples:
+
+Do you deliver to Dubai Marina?  
+Do you deliver to Al Ain?  
+Is delivery available today?  
+Do you deliver to JVC?
+
+These questions are about service coverage, not order tracking.
+
+---
+
+issue_category (only if broad_category = support):
+
+order_status  
+delivery_area  
+order_modification  
+payment  
+product_question  
+complaint  
+refund  
+cancellation  
+address_change  
+other  
+
+Use the same issue_category across the conversation whenever possible unless the topic clearly changes.
+
+Clarification:
+
+order_status also includes questions about delivery time, shipping estimate, when an order will arrive, delivery delays, or requests for an estimated delivery date.
+
+If broad_category is NOT support, issue_category MUST be null.
+
+Never return an issue_category value for non-support messages.
+
+---
+
+ORDER MODIFICATION QUESTIONS
+
+Requests to change an existing order must be classified as:
+
+support | order_modification
+
+Examples:
+
+Can you change my order?  
+I want to remove one item  
+Please change delivery time  
+Add one more product to my order
+
+---
+
+OUTBOUND MESSAGE CLASSIFICATION
+
+If the message is written by the store (agent reply), use the same issue_category as the customer's message that triggered the reply unless the reply introduces a completely different topic.
+
+Example:
+
+Customer: Do you deliver to Dubai Marina?  
+Store: Yes, delivery is available.
+
+Both messages should use:
+
+support | delivery_area
+
+---
+
+priority rules:
+
+If broad_category = b2b_sales → high.  
+If broad_category = supplier_prospect → normal.  
+If support AND issue_category in (complaint, refund) → high.  
+If support other → normal.  
+If marketing → low.  
+If spam → low.  
+If other → low.
+
+---
+
+confidence:
+
+Return a number between 0.0 and 1.0.
+
+---
+
+ESCALATION RULES
+
+Set escalation_flag = true when human intervention is required.
+
+Escalate in the following situations:
+
+1. issue_category = complaint  
+2. issue_category = refund  
+3. issue_category = cancellation  
+4. broad_category = b2b_sales  
+5. broad_category = supplier_prospect  
+6. The sender explicitly asks to speak with a human, manager, or support agent.
+
+In all other cases:
+
+escalation_flag = false
+
+---
+
+ESCALATION SAFETY RULE
+
+If broad_category = spam or marketing  
+then escalation_flag must always be false.
+
+---
+
+Return only the pipe-separated values.  
+Do not include explanations.
+
+RECENT CONVERSATION CONTEXT {{48.text}}
+
+Sender: {{18.text}}
+New Message: {{13.message_text}}
+```
 ------------------------------------------------------------------------
 
-# Step 8 --- Airtable Create Record
+# Step 8 --- Airtable Create Record 45
 
 **Module:** Airtable → Create Record
 
@@ -269,13 +495,9 @@ for the conversation**.
 
 ------------------------------------------------------------------------
 
-# Step 9 --- Trigger Scenario 07 (AI Reply Draft)
+# Step 9 --- Trigger Scenario 07 (AI Reply Draft) - HTTP Module 46
 
-**Module:** HTTP → Make a Request
-
-Purpose:
-
-Trigger the **central AI reply generator scenario**.
+Purpose: Trigger the **central AI reply generator scenario**.
 
 Scenario 07 generates a suggested support reply that will later be shown
 to the operator in Telegram.
@@ -308,7 +530,7 @@ Scenario 07 then:
 
 ---
 
-# Step 10 --- Airtable Search Records Again (Buffer Cleanup)
+# Step 10 --- Airtable 42 Search Records Again (Buffer Cleanup) 
 
 Table: message_buffer
 
@@ -323,7 +545,7 @@ This second search is used only for cleanup.
 
 ---
 
-# Step 11 --- Airtable Delete Record(s) (Buffer Cleanup)
+# Step 11 --- Airtable 43 Delete Record(s) (Buffer Cleanup)
 
 Purpose: Delete all buffered rows returned by the cleanup search.
 
