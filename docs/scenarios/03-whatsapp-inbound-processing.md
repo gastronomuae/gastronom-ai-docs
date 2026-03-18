@@ -113,9 +113,6 @@ Variables created for easier mapping later in the scenario.
 
 This converts the Unix timestamp from the webhook into Dubai local time.
 
----
-
-
 
 ---
 
