@@ -14,7 +14,7 @@ Agents can either:
 
 # High Level Flow
 ```
-Telegram Bot (Watch Updates)
+Webhook Custom (Linked to 00 Telegram Watch Updates)
 ↓
 Filter → Only Telegram replies
 ↓
@@ -50,10 +50,10 @@ Send reply to correct platform
 
 # Trigger
 
-**Module**
-Telegram Bot → Watch Updates
-
-This module listens to all messages posted in the support Telegram group.
+**Module 0**
+Webhook custom → gastronom_bot_reply_s08
+URL: https://hook.eu1.make.com/tx8ttg0cqgu9qiftle83gvrdadh7q38v
+This module listens to all messages posted in the support &logistics Telegram groups (via scenario 00).
 
 ---
 
@@ -71,7 +71,7 @@ This prevents the scenario from triggering on unrelated messages in the Telegram
 
 ---
 
-# Step 2 Set Variable
+# Step 2 - Set Variable 2
 
 Purpose: fetch original customer message sent to telegram group, where telegram bot listening. here we have customer support group and gastronom logistic groups. both has airtable record Id as a case ID, starting with 🆔, in a new line
 The original Telegram notification contains the Airtable record ID:
@@ -107,7 +107,7 @@ Condition:
 
 ### - Retrieve Conversation Data
 
-**Module** Airtable → Get Record 
+**Module** Airtable 8 → Get Record
 
 record_id
 
@@ -288,7 +288,7 @@ message_source | instagram dm |
 message_text | `8.ai_suggested_reply` |
 broad_category | `8.broad_category` |
 timestamp_utc | `formatDate(now; YYYY-MM-DD HH:mm:ss)` |
-agent_name | `1.Message: From: User Name` |
+agent_name | `{{1.message.from.username}}` |
 conversation_status | waiting_customer |
 ai_reply_used | true |
 escalation_flag | false |
@@ -439,7 +439,7 @@ message_source | whatsapp |
 message_text | `8.ai_suggested_reply` |
 broad_category | `8.broad_category` |
 timestamp_utc | `formatDate(now; YYYY-MM-DD HH:mm:ss)` |
-agent_name | `1.Message: From: User Name` |
+agent_name | `{{1.message.from.username}}` |
 conversation_status | waiting_customer |
 ai_reply_used | true |
 escalation_flag | false |
@@ -466,7 +466,7 @@ message_source | whatsapp |
 message_text | `1.Message: Text` |
 broad_category | `8.broad_category` |
 timestamp_utc | `formatDate(now; YYYY-MM-DD HH:mm:ss)` |
-agent_name | `1.Message: From: User Name` |
+agent_name | `{{1.message.from.username}}` |
 conversation_status | waiting_customer |
 ai_reply_used | false |
 escalation_flag | true |
@@ -530,7 +530,7 @@ Example: vohanjanyan
 
 
 ---
-## Order Dispatcher Route
+## Order Dispatcher Route 42
 
 A new router path was introduced to allow human operators in the Telegram Logistics group to reply directly to customer messages from Instagram or WhatsApp.
 
@@ -575,7 +575,7 @@ Log outbound message to Airtable
 # Step 3 — Retrieve Conversation Data
 
 **Module**
-Airtable → Get Record
+Airtable 45 → Get Record
 
 Searching via Record ID:
 
@@ -589,7 +589,7 @@ This retrieves:
 
 ---
 
-## Channel Router
+## Channel Router 48
 
 After retrieving the Airtable record, the scenario determines which messaging platform should receive the reply.
 
@@ -619,8 +619,8 @@ These modules reuse the same configuration as the existing outbound messaging mo
 
 Modules reused from the existing WhatsApp outbound message implementation:
 
-1. HTTP → Send WhatsApp message
-2. Airtable → Create outbound message record
+1. Whatsapp Send Message 52 → Send WhatsApp message
+2. Airtable 54 Create a record → Create outbound message record
 
 Mappings and formulas are identical to those already documented in the WhatsApp messaging section and are therefore not repeated here.
 
@@ -628,8 +628,8 @@ Mappings and formulas are identical to those already documented in the WhatsApp 
 
 Modules reused from the existing Instagram messaging implementation:
 
-1. HTTP → Send Instagram message via Meta Graph API
-2. Airtable → Create outbound message record
+1. HTTP 51 → Send Instagram message via Meta Graph API
+2. Airtable 53 create a record → Create outbound message record
 
 Mappings and formulas remain identical to the original Instagram outbound configuration.
 
@@ -653,7 +653,7 @@ Customer replies again
 
 This temporary model is used while the dataset is still being trained and before automated conversation resolution logic is introduced.
 
-## Telegram Support Group
+## Telegram Support Group 
 
 A dedicated Telegram group is used as the dispatcher interface for human operators.
 
@@ -661,7 +661,7 @@ Operators can reply directly to AI-generated messages in the group, and the syst
 
 ### Telegram Chat ID
 
--570449120
+-5133624518
 
 This ID is used in the Telegram bot modules for both message delivery and reply detection.
 
