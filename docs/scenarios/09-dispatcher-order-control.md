@@ -14,7 +14,7 @@ The scenario also allows the dispatcher to **query order status** without modify
 # Architecture
 
 ```
-Dispatcher Telegram message
+Webhook Custom -> Linked to 00-Scenario Dispatcher Telegram message
 ↓
 Regex validation filter
 ↓
@@ -53,9 +53,11 @@ Where:
 
 # Regex Validation Filter
 
-Telegram messages must match the pattern:
+Telegram messages must by in XXXX-command format:
 ```
-^\d{4}-(ready|out|outbuy|buy|issue|cancel|delivered|status)\s*$
+  {{lower(2.message_text)}}
+Matches Pattern (text)
+  ^\d{4}-(ready|out|outbuy|buy|issue|cancel|delivered|status)\s*$
 ```
 
 This ensures that:
@@ -69,7 +71,7 @@ This ensures that:
 
 ## Order Number
 ```
-{{first(split(2.message.text; "-"))}}
+{{lower(2.message_text)}}
 ```
 
 Example:
@@ -83,7 +85,7 @@ Output: order_number = 4198
 ## Command
 
 ```
-{{last(split(2.message.text; "-"))}}
+{{last(split(2.order.command; "-"))}}
 ```
 
 Example:
