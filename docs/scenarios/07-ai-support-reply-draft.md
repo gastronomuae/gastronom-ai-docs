@@ -781,6 +781,10 @@ Customer message:
 @dispatcher please confirm status
 🆔 rec0W4mpLQEJsFsWV
 
+🤖 AI Suggested reply:
+{{9.ai_suggested_reply}}
+
+
 Commands:
 send
 /reply your text
