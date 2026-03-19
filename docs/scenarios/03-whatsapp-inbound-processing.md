@@ -82,8 +82,10 @@ Example payload:
 **Conditions:**
 ```
     4.entry[].changes[].field = messages
-    AND
+AND
     4.entry[].changes[].value.messages exists
+ AND
+    {{4.entry[].changes[].value.messages[].type}} =  text
 ```
 
 **Purpose**
