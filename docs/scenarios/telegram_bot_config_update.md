@@ -10,11 +10,11 @@ The bot acts as a **remote control panel** for your system configuration.
 
 ---
 
-# Architecture
+# Architecture - High Level
 
-Telegram → Make.com → Airtable
+Webhook Custom → Router (6 routes) → Airtable -> Telegram sedn message
 
-The scenario listens for Telegram updates and routes them depending on whether the user:
+The scenario listens for Telegram updates via cutome webhook (00 scenario whre telegram messages being trigerred) and routes them depending on whether the user:
 - starts the bot
 - views configuration values
 - edits configuration values
@@ -144,7 +144,7 @@ Updated rub_payment_bank_name_ru → rub_test ✅
 
 1. Search Records (no formula)
 
-Max records: 50
+Max records: 10
 
 2. Filter:
 
