@@ -198,17 +198,14 @@ Purpose
 
 ---
 
-# Module 2 – Variable Preparation
-
-Tools – Set Multiple Variables
+# Module Tools - Set VAriables 6
 
 | Variable | Purpose |
 |--------|--------|
+| message_text | {{1.entry[].messaging[].message.text}} |
+| message_id_external | {{1.entry[].messaging[].message.mid}} |
 | channel | instagram |
-| message_id_external | Instagram message ID |
-| sender_id | Instagram user ID |
-| message_text | Raw message |
-| timestamp | formatDate(parseDate(1.entry[].messaging[].timestamp / 1000; "X"); "YYYY-MM-DD HH:mm:ss"; "Asia/Dubai") |
+| timestamp | {{formatDate(parseDate(1.entry[].messaging[].timestamp / 1000; "X"); "YYYY-MM-DD HH:mm:ss"; "Asia/Dubai")}} |
 
 Example Output
 
