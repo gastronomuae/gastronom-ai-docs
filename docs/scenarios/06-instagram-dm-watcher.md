@@ -31,7 +31,7 @@ This ensures Instagram inquiries are tracked consistently alongside other suppor
 
 # Module 1 – Webhooks – Custom Webhook
 
-```text
+
 ## Meta Developer Application
 
 A Meta Developer application was created to enable access to the Instagram Messaging API.
@@ -115,7 +115,7 @@ The Instagram tester role allows the messaging integration to be tested while th
 
 Integration Result
 With this configuration, all Instagram Direct Messages received by the connected Instagram Business account are automatically delivered to the automation system.
-```
+
 
 # Message Flow
 ```
@@ -181,8 +181,13 @@ After the Webhooks – Custom Webhook trigger, a filter is applied to ensure the
 
 This prevents the automation from triggering on other Instagram webhook events such as delivery confirmations, reactions, or typing indicators.
 
-Filter Label: Instagram DM – Has text
-Condition: 1.entry[].messaging[].message.text = Exists
+Filter Label: Instagram DM – Has text and not coming from @gastronom.uae page
+Condition: 
+```
+  1.entry[].messaging[].message.text = Exists
+AND
+  {{1.entry[].messaging[].sender.id}} != 17841448648228773
+```
 
 Purpose
 - Ensures the automation runs only for real Instagram messages
