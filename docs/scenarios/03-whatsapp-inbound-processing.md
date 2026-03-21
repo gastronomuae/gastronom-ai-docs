@@ -118,7 +118,19 @@ Variables created for easier mapping later in the scenario.
 
 ### message_text
 ```
-    {{if(4.entry[].changes[].value.messages[].type = "text"; 4.entry[].changes[].value.messages[].text.body; )}}
+    {{ 
+if(
+  4.entry[].changes[].value.messages[].type = "text";
+  4.entry[].changes[].value.messages[].text.body;
+  
+  if(
+    4.entry[].changes[].value.messages[].type = "image";
+    ifempty(4.entry[].changes[].value.messages[].image.caption; "");
+    
+    ""
+  )
+)
+}}
 ```
 ### wa_number
 ```
