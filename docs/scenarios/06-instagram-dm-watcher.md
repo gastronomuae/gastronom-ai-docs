@@ -1,7 +1,17 @@
 # Scenario 6 – Instagram DM Watcher
 
 ```
-Webhook → Set Variables → Instagram API Request → Prepare Message → AI Classification → Router → Telegram Alert → Airtable Log
+Webhook 
+→ Set Variables 
+→ Message Buffer (Airtable) 
+→ Aggregate Messages 
+→ Last Message Filter 
+→ Conversation Context (Airtable) 
+→ AI Classification 
+→ Router 
+→ Telegram Notification 
+→ Airtable Logging 
+→ Buffer Cleanup
 ```
 
 ---
@@ -117,21 +127,6 @@ Integration Result
 With this configuration, all Instagram Direct Messages received by the connected Instagram Business account are automatically delivered to the automation system.
 
 
-# Message Flow
-```
-Instagram Direct Message  
-↓  
-Meta Webhook Event  
-↓  
-Make Automation Scenario  
-↓  
-AI Message Classification  
-↓  
-Router (Important / Non‑Important)  
-↓  
-Telegram Alert + Airtable Logging
-```
-
 ---
 ### Captured data includes:
 
@@ -220,7 +215,82 @@ Example Output
 ]
 
 ```
+---
 
+# Step 3 --- Airtable 45 Create Record (Message Buffer)
+
+Table: message_buffer
+
+Purpose:
+Store every inbound WhatsApp message first in a temporary buffer table so that multiple messages sent within a short period can be merged before AI processing.
+
+| Field | Value |
+|------|--------|
+| **wa_number** | {{6.sender_id}} |
+| **message_text** | {{6.message_text}} |
+| **timestamp** | {{6.timestamp}} |
+| **processed** | empty |
+
+---
+
+# Step 4 --- Sleep 33 (Buffer Window)
+
+Value: 40 seconds
+
+Purpose: Allow the customer to send follow-up messages in quick succession before processing begins.
+
+Example:
+```
+“Hello”
+“Where is my order?”
+“4201”
+```
+These should be treated as one grouped support message instead of three independent AI requests.
+
+---
+
+# Step 5 --- Airtable 48 Search Records (Message Buffer Lookup)
+
+Table: message_buffer
+All rows - sorted by timestamp (ascending) 
+Formula: NOT({processed})
+
+
+Purpose:
+Retrieve all buffered messages from the table that are not processed.
+
+---
+## Filter - same wa_number
+{{48.wa_number}} = {{6.sender_id}}
+phone number from table we searhced matches phone number from sender (webhook -> set varialbles wa_number)
+
+---
+
+# Step 6 --- Text Aggregator 18 (Merge Messages)
+
+Source module: Airtable Search Records (message_buffer)
+
+Grouped by: {{48.wa_number}}
+Text field aggregated: {{48.message_text}}
+Row separator: New row
+Stop processing after an empty aggregation: Yes
+
+Example output:
+
+Hello
+Where is my order?
+4201
+
+Purpose:
+Combine messages together as a one text, each message starts with new line. So evantuallt we can send as a one mesgae to Telegram, rather than each message as a separate note.
+
+---
+## Filter - Latest Run Only
+```
+  {{49.text}}
+Ends With
+  {{6.message_text}}
+```
 ---
 
 # Module 3 – Instagram API Enrichment
@@ -235,8 +305,7 @@ Returns:
 | Field | Description |
 |------|-------------|
 | username | Instagram username |
-| profile_pic | Profile picture |
-| name | Display name |
+| access_token | toekn_value |
 
 ```json
 [
@@ -277,9 +346,8 @@ Returns:
 
 ---
 
-# Module 4 – Sender Handle Resolution
+# Module 4 Tools - Set varilabl 15 – Sender Handle Resolution
 
-Tools – Set Variable
 ```
 sender_handle  
 {{ifempty(username; sender_id)}}
