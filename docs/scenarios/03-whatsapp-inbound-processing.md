@@ -13,27 +13,37 @@ It acts as the **buffering, aggregation, ingestion, and classification pipeline*
 ```
 WhatsApp Webhook
 ↓
-Filter inbound messages
+Filter inbound messages (text only)
 ↓
 Extract variables
 ↓
 Airtable create record (message_buffer)
 ↓
-Sleep 30 seconds
+Sleep (30s buffer window)
 ↓
-Airtable search records (same wa_number)
+Airtable search records (same wa_number, NOT processed)
 ↓
 Text Aggregator (merge messages)
 ↓
-Filter latest run only
+IF / ELSE (message type handling)
+   ├── TEXT → use message_text
+   └── IMAGE → download → analyze (OpenAI) → extract summary
 ↓
-AI classification
+Filter latest run only (dedupe parallel runs)
 ↓
-Airtable create record (conversation_log / support_messages)
+Airtable search (conversation history)
+↓
+Context Aggregator (last messages)
+↓
+AI classification (OpenAI)
+↓
+Build final_message_text (text + image context)
+↓
+Airtable create record (support_messages)
 ↓
 Trigger Scenario 07 (AI reply generator)
 ↓
-Airtable search records again (same wa_number)
+Airtable search (buffer cleanup)
 ↓
 Airtable delete buffered records
 ```
