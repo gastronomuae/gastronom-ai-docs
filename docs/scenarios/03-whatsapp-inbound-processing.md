@@ -612,10 +612,14 @@ Purpose: Combine text + image context into one message
 ```
 final_message_text = 
 {{trim(18.text)}}
-{{if(63.image_type != ""; " Image type:   " + 63.image_type; "")}}
-{{if(63.product_name != ""; " Image product:  " + 63.product_name; "")}}
-{{if(63.image_issue != ""; " Image issue:  " + 63.image_issue; "")}}
-{{if(63.image_summary != ""; " Image summary:  " + 63.image_summary; "")}}
+{{if(trim(ifempty(63.image_type; "")) != ""; "
+Image type: & " + 63.image_type; "")}}
+{{if(trim(ifempty(63.product_name; "")) != ""; "
+Image product: & " + 63.product_name; "")}}
+{{if(trim(ifempty(63.image_issue; "")) != ""; "
+Image issue: & " + 63.image_issue; "")}}
+{{if(trim(ifempty(63.image_summary; "")) != ""; "
+Image summary: & " + 63.image_summary; "")}}
 ```
 
 
