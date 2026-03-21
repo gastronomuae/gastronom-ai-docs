@@ -46,13 +46,25 @@ Expected payload structure:
 
 ```json
 {
-  "airtable_record_id": "recXXXX",
-  "channel": "instagram",
-  "message_text": "Customer message text",
-  "broad_category": "support",
-  "issue_category": "product_question",
-  "priority": "normal",
-  "message_direction": "inbound"
+        "airtable_record_id": "recSmH6QUKG2RC8Nq",
+        "channel": "whatsapp_A",
+        "data": {
+            "image_type": null,
+            "image_issue": null,
+            "message_text": "hello, where is my order?",
+            "order_number": null,
+            "product_name": null,
+            "image_summary": null
+        },
+        "broad_category": "support",
+        "issue_category": "order_status",
+        "sentiment": "unknown",
+        "priority": "normal",
+        "message_source": "whatsapp_A",
+        "message_direction": "inbound",
+        "timestamp_utc": "2026-03-21T08:36:31.000Z",
+        "customer_phone": "971561345294",
+        "conversation_hash": "971561345294"
 }
 ```
 
@@ -396,15 +408,13 @@ CONVERSATION CONTEXT
 RECENT CONVERSATION HISTORY
 {{18.text}}
 
-Channel: 
-
-Message Source: {{1.channel}}
-Customer message: {{1.message_text}}
-Issue category: {{1.issue_category}}
-Broad category: {{1.broad_category}}
-Customer sentiment: {{1.sentiment}}
-Priority: {{1.priority}}
-Customer message date and time: {{1.timestamp_utc}}
+Message Source: {{ifempty(1.channel; "")}}
+Customer message: {{ifempty(1.data.message_text; "")}}
+Issue category: {{ifempty(1.issue_category; "")}}
+Broad category: {{ifempty(1.broad_category; "")}}
+Customer sentiment: {{ifempty(1.sentiment; "")}}
+Priority: {{ifempty(1.priority; "")}}
+Customer message date and time: {{ifempty(1.timestamp_utc; "")}}
 
 When relevant, use details from the recent conversation history to better understand the customer's situation. 
 If the customer refers to "me", "my area", or similar wording, infer context from earlier messages such as the customer's location or previous topic.
@@ -624,7 +634,7 @@ Return ONLY the JSON object. No text before or after it.
 
 ```
 Customer message:
-{{message_text}}
+{{ifempty(1.data.message_text; )}}
 ```
 
 ## Conversation Context Usage
