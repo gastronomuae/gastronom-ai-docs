@@ -665,12 +665,12 @@ Fields:
 ```
 Mapping:
 ```
-message_text  = {{63.message_text}}
-image_type    = {{63.image_type}}
-order_number  = {{63.order_number}}
-product_name  = {{63.product_name}}
-image_issue   = {{63.image_issue}}
-image_summary = {{63.image_summary}}
+message_text  = {{trim(ifempty(63.message_text; ))}}
+image_type    = {{trim(ifempty(63.message_text; ))}}
+order_number  = {{trim(ifempty(63.order_number; ))}}
+product_name  = {{trim(ifempty(63.product_name; ))}}
+image_issue   = {{trim(ifempty(63.image_issue; ))}}
+image_summary = {{trim(ifempty(63.image_summary; ))}}
 ```
 
 
@@ -689,12 +689,7 @@ POST request body:
 {
 "airtable_record_id": "{{11.id}}",
 "channel": "whatsapp_A",
-"message_text": "{{63.message_text}}",
-"image_type": "{{63.image_type}}",
-"product_name": "{{63.product_name}}",
-"image_issue": "{{63.image_issue}}",
-"image_summary": "{{63.image_summary}}",
-"image_type": "{{63.image_type}}",
+"data": {{70.json}},
 "broad_category": "{{11.broad_category}}",
 "issue_category": "{{11.issue_category}}",
 "sentiment": "{{ifempty(11.customer_sentiment; "unknown")}}",
