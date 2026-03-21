@@ -107,17 +107,17 @@ Only real inbound customer messages pass through.
 Variables created for easier mapping later in the scenario.
 
 ### message_text
-
-    {{4.entry[].changes[].value.messages[].text.body}}
-
+```
+    {{if(4.entry[].changes[].value.messages[].type = "text"; 4.entry[].changes[].value.messages[].text.body; )}}
+```
 ### wa_number
-
+```
     {{4.entry[].changes[].value.messages[].from}}
-
+```
 ### channel
-
+```
     whatsapp
-
+```
 ### timestamp
 
     {{formatDate(parseDate(4.entry[].changes[].value.messages[].timestamp; "X"); "YYYY-MM-DD HH:mm:ss"; "Asia/Dubai")}}
@@ -195,7 +195,120 @@ Combine messages togetehr as a one text, each message starts with new line. So e
 
 ---
 
-# Step 7 --- Airtable Search rcords 47 (Airtable Lookup)
+# Step 7 🔀 Module 51 — If / Else (Image Detection)
+
+Condition: {{4.entry[].changes[].value.messages[].type}} = image
+
+## 🖼️ IF Branch — Image Processing Flow
+🔧 Module 53 — Set Variable
+
+Purpose: Extract image ID from WhatsApp payload
+image_id = {{4.entry[].changes[].value.messages[].image.id}}
+
+### 🌐 Module 56 — HTTP (Get Image Metadata)
+
+Request:
+  Method: GET
+  URL: https://graph.facebook.com/v18.0/{{53.image_id}}
+  Headers: Authorization: Bearer <ACCESS_TOKEN>
+  ⚠️ Uses token from unpublished Meta app
+
+### ⬇️ Module 59 — HTTP (Download Image File)
+
+  Request: Method: GET
+  URL: {{57.data.url}}
+  Headers: Authorization: Bearer <ACCESS_TOKEN>
+  
+### 🤖 Module 61 — OpenAI (Image Analysis)
+  Model: gpt-4.1-mini
+  Mode: System
+  Image Input: HTTP file (Module 59)
+
+#### Prompt
+```
+Analyze this image.
+
+Classify into ONE of these types:
+
+ORDER = order confirmation, receipt, invoice screenshot  
+SCREENSHOT = product page, website, catalog, pricing screen  
+PHOTO = real-life photo taken by user (product, delivery, groceries, etc.)
+
+Return exactly 5 values separated by | in this order:
+
+type|order_number|product_name|issue|summary
+
+RULES:
+
+1. order_number
+- ONLY for ORDER
+- Otherwise null
+
+2. product_name
+- Extract if clearly visible
+- Otherwise null
+
+3. issue
+- ALWAYS null (handled later by main classifier)
+
+4. summary
+- Short description of what is visible
+- If PHOTO → mention "real-life" or "delivered" when relevant
+- Never null
+
+5. General
+- Use exact word: null
+- No explanations
+- No JSON
+- Return one single line
+- Do not use double quotes or single quotes anywhere
+- Do not wrap any value in quotes
+- Do not use the | character inside values
+```
+
+### 🧩 Module 62 — Set Multiple Variables
+
+Purpose: Parse OpenAI output
+```
+image_type    = {{get(split(61.result; "|"); 1)}}
+order_number  = {{get(split(61.result; "|"); 2)}}
+product_name  = {{get(split(61.result; "|"); 3)}}
+image_issue   = {{get(split(61.result; "|"); 4)}}
+image_summary = {{get(split(61.result; "|"); 5)}}
+has_image     = true
+```
+
+### 🗂️ Module 68 — Airtable (Create Record — Temp Buffer)
+
+Purpose: Store image-derived data for later aggregation
+
+Fields:
+```
+wa_number     = {{13.wa_number}}
+timestamp     = {{13.timestamp}}
+
+image_type    = {{62.image_type}}
+order_number  = {{62.order_number}}
+product_name  = {{62.product_name}}
+image_issue   = {{62.image_issue}}
+image_summary = {{62.image_summary}}
+has_image     = true
+```
+
+## 💬 ELSE Branch — Text Processing
+🔧 Module 60 — Set Variable : message_text = {{18.text}}
+
+## 🔄 Shared Flow (Post Merge) 51
+
+After IF/ELSE, flow continues to:
+
+Airtable (conversation history)
+Aggregator (message buffer)
+OpenAI (main classification)
+
+---
+
+# Step 8 --- Airtable Search rcords 47 (Airtable Lookup)
 
 The scenario searches the **conversation_log** table for recent messages belonging to the same conversation.
 
@@ -211,29 +324,15 @@ This returns the most recent conversation history between the customer and the s
 
 ---
 
-# Step 8 --- Tools - Text Aggregator 48 - Context Formatting
-
-The retrieved messages are formatted into a text block and passed to the AI classifier as conversation context.
-Source Module: Airtable 47
-Row separator: New row
-Text: {{47.conversation_hash}}: {{47.message_text}}
-
-Example:
-
-Customer: When will my order arrive?
-Store: It should arrive today before 6pm
-Customer: 4177
-
-Customer: When will my order arrive?
-Store: It should arrive today before 6pm
-Customer: 4177
-
 ---
 ## Filter - Latest Run Only
 ```
-{{18.text}}
-Ends with (case insensitive)
-{{13.message_text}}
+  {{length(trim(13.message_text))}} > 0
+AND
+  {{18.text}} Ends with (case insensitive) {{13.message_text}}
+OR
+  {{length(trim(13.message_text))}} = 0
+
 ```
 
 Purpose:
@@ -256,7 +355,26 @@ This prevents:
 
 ---
 
-# Step 7 --- OpenAI Classification 44
+# Step 9 --- Tools - Text Aggregator 48 - Context Formatting
+
+The retrieved messages are formatted into a text block and passed to the AI classifier as conversation context.
+Source Module: Airtable 47
+Row separator: New row
+Text: {{47.conversation_hash}}: {{47.message_text}}
+
+Example:
+
+Customer: When will my order arrive?
+Store: It should arrive today before 6pm
+Customer: 4177
+
+Customer: When will my order arrive?
+Store: It should arrive today before 6pm
+Customer: 4177
+
+
+
+# Step 10 --- OpenAI Classification 44
 
 **Module:** OpenAI
 
@@ -469,10 +587,39 @@ RECENT CONVERSATION CONTEXT {{48.text}}
 
 Sender: {{18.text}}
 New Message: {{13.message_text}}
-```
-------------------------------------------------------------------------
 
-# Step 8 --- Airtable Create Record 45
+---
+
+IMAGE CONTEXT (if exists):
+Type: {{63.image_type}}
+Order: {{63.order_number}}
+Product: {{63.product_name}}
+
+Visual summary: {{63.image_summary}}
+
+
+Detected issue (from image):
+{{63.image_issue}}
+
+If IMAGE CONTEXT fields are empty or null, ignore them completely and classify based only on the text message and conversation context.
+
+```
+---
+
+# Step 11 --- 🧱 Module 67 — Set Variable (Final Message)
+
+Purpose: Combine text + image context into one message
+```
+final_message_text = 
+{{trim(18.text)}}
+{{if(63.image_type != ""; " Image type:   " + 63.image_type; "")}}
+{{if(63.product_name != ""; " Image product:  " + 63.product_name; "")}}
+{{if(63.image_issue != ""; " Image issue:  " + 63.image_issue; "")}}
+{{if(63.image_summary != ""; " Image summary:  " + 63.image_summary; "")}}
+```
+
+
+# Step 12 --- Airtable Create Record 45
 
 **Module:** Airtable → Create Record
 
@@ -480,24 +627,56 @@ Table: `support_messages`
 
 | Field | Value |
 |------|--------|
-| **channel ** | whatsapp |
-| **message_text ** | {{message_text}} |
-| **wa_number** | {{wa_number}} |
-| **timestamp** | {{timestamp}} |
-| **broad_category** | OpenAI result |
-| **issue_category** | OpenAI result |
-| **priority** | OpenAI result |
-| **confidence** | OpenAI result |
-| **escalation_flag** | OpenAI result |
+| **conversation_id** | {{4.entry[].changes[].value.messages[].id}} |
+| **wa_number** | {{13.wa_number}} |
+| **message_id_external** | {{4.entry[].changes[].value.messages[].id}} |
 | **message_direction** | inbound |
+| **message_source** | whastapp_A |
+| **message_text** | {{63.order_number}} |
+| **broad_category** | support |
+| **issue_category** | {{if(get(split(44.result; "|"); 2) = "null"; ""; get(split(44.result; "|"); 2))}} |
+| **timestamp** | {{13.timestamp}} |
+| **conversation_status** | open |
+| **priority** | {{get(split(44.result; "|"); 3)}} |
+| **channel** | whastapp_A |
+| **confidence** | {{get(split(44.result; "|"); 4)}} |
+| **conversation_hash** | {{4.entry[].changes[].value.messages[].from}} |
+
 
 
 The Airtable record ID generated here becomes the **primary reference ID
 for the conversation**.
 
-------------------------------------------------------------------------
+---
+# Step 13 --- 🧾 Module 70 — JSON (Create JSON)
 
-# Step 9 --- Trigger Scenario 07 (AI Reply Draft) - HTTP Module 46
+Purpose: Prepare structured payload for HTTP module
+
+Fields:
+```
+{
+  "message_text": "",
+  "image_type": "",
+  "order_number": "",
+  "product_name": "",
+  "image_issue": "",
+  "image_summary": ""
+}
+```
+Mapping:
+```
+message_text  = {{63.message_text}}
+image_type    = {{63.image_type}}
+order_number  = {{63.order_number}}
+product_name  = {{63.product_name}}
+image_issue   = {{63.image_issue}}
+image_summary = {{63.image_summary}}
+```
+
+
+---
+
+# Step 14 --- Trigger Scenario 07 (AI Reply Draft) - HTTP Module 46
 
 Purpose: Trigger the **central AI reply generator scenario**.
 
@@ -510,7 +689,12 @@ POST request body:
 {
 "airtable_record_id": "{{11.id}}",
 "channel": "whatsapp_A",
-"message_text": "{{11.message_text}}",
+"message_text": "{{63.message_text}}",
+"image_type": "{{63.image_type}}",
+"product_name": "{{63.product_name}}",
+"image_issue": "{{63.image_issue}}",
+"image_summary": "{{63.image_summary}}",
+"image_type": "{{63.image_type}}",
 "broad_category": "{{11.broad_category}}",
 "issue_category": "{{11.issue_category}}",
 "sentiment": "{{ifempty(11.customer_sentiment; "unknown")}}",
@@ -532,7 +716,7 @@ Scenario 07 then:
 
 ---
 
-# Step 10 --- Airtable 42 Search Records Again (Buffer Cleanup) 
+# Step 15 --- Airtable 42 Search Records Again (Buffer Cleanup) 
 
 Table: message_buffer
 
@@ -547,7 +731,7 @@ This second search is used only for cleanup.
 
 ---
 
-# Step 11 --- Airtable 43 Delete Record(s) (Buffer Cleanup)
+# Step 16 --- Airtable 43 Delete Record(s) (Buffer Cleanup)
 
 Purpose: Delete all buffered rows returned by the cleanup search.
 
