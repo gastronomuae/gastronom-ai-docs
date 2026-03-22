@@ -20,7 +20,6 @@ Webhook
 
 This scenario processes incoming Instagram Direct Messages (DMs) received via a webhook, enriches the data using the Instagram Graph API, classifies the message using AI, and logs the interaction in Airtable while notifying the support team through Telegram when necessary.
 
-The structure mirrors the Email Automation system to ensure consistent conversation tracking and CRM logging.
 
 ---
 
@@ -360,21 +359,25 @@ Logic:
 
 ---
 
-# Module 5 – Conversation Context Retrieval
+# Module 5 – Airtable Search Rcord 34 Conversation Context (Hiatory) Retrieval
 
 Before sending the message to the AI classification module, the scenario retrieves recent conversation history from Airtable.
-
 This allows the classifier to understand whether the message is part of an ongoing conversation and helps maintain consistent issue categorization across multiple messages.
-
 Many customer replies are extremely short and rely on previous context, for example:
 
-- order numbers
-- confirmations
-- short acknowledgements
-- delivery details
-- addresses
+Table: message_buffer
 
 Without context these messages could be incorrectly classified.
+
+
+
+
+| Field | Value |
+|------|--------|
+| **wa_number** | {{6.sender_id}} |
+| **message_text** | {{6.message_text}} |
+| **timestamp** | {{6.timestamp}} |
+| **processed** | empty |
 
 ---
 
