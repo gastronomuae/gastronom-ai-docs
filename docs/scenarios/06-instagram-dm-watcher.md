@@ -192,7 +192,7 @@ Purpose
 
 ---
 
-# Module Tools - Set VAriables 6
+# Module Tools - Set Variables 6
 
 | Variable | Purpose |
 |--------|--------|
@@ -345,7 +345,7 @@ Returns:
 
 ---
 
-# Module 4 Tools - Set varilabl 15 – Sender Handle Resolution
+# Module 4 Tools - Set varilable 15 – Sender Handle Resolution
 
 ```
 sender_handle  
@@ -365,37 +365,22 @@ Before sending the message to the AI classification module, the scenario retriev
 This allows the classifier to understand whether the message is part of an ongoing conversation and helps maintain consistent issue categorization across multiple messages.
 Many customer replies are extremely short and rely on previous context, for example:
 
-Table: message_buffer
-
-Without context these messages could be incorrectly classified.
-
-
-
-
-| Field | Value |
-|------|--------|
-| **wa_number** | {{6.sender_id}} |
-| **message_text** | {{6.message_text}} |
-| **timestamp** | {{6.timestamp}} |
-| **processed** | empty |
+Table: conversation_log
+Sort: by timestamp_utc -> Ascending
+Formula: {conversation_hash} = "{{14.data.username}}"
+Limit: 4
 
 ---
 
-## Airtable Lookup
+# Module 6 – Tools Text Aggregator 35 (Hiatory) Retrieval
 
-The scenario searches the **conversation_log** table for recent messages belonging to the same conversation.
+Before sending the message to the AI classification module, the scenario retrieves recent conversation history from Airtable.
+This allows the classifier to understand whether the message is part of an ongoing conversation and helps maintain consistent issue categorization across multiple messages.
+Many customer replies are extremely short and rely on previous context, for example:
 
-Lookup parameters:
-
-| Field | Condition |
-|------|------|
-| conversation_id | sender_id |
-| Sort | timestamp descending |
-| Limit | recent messages |
-
-This returns the most recent conversation history between the customer and the store.
-
----
+Source Module: Search Records 34
+Row Separator: New Row
+Text: {{34.conversation_hash}}: {{34.message_text}}
 
 ## Context Formatting
 
@@ -411,10 +396,9 @@ Customer: When will my order arrive?
 Store: It should arrive today before 6pm
 Customer: 4177
 
-
 ---
 
-# Module 6 – AI Message Classification (Context Aware)
+# Module 7 – AI Message Classification (Context Aware)
 
 OpenAI Model: gpt-5-nano
 
@@ -689,7 +673,7 @@ This route is configured as the fallback route, meaning it will process any mess
 
 ---
 
-# Module 8 – Telegram Notification
+# Module 8 – Telegram Notification 11 (Important DM Route)
 
 For messages classified as important, the scenario sends a notification to the internal support Telegram group.
 This allows the team to quickly see and respond to relevant Instagram inquiries without needing to monitor Instagram directly.
@@ -703,17 +687,13 @@ Message format:
 📩 Instagram DM
 
 👤 {{15.sender_handle}}
-💬 {{6.message_text}}  
-📅 {{6.timestamp}}
+💬 {{49.text}}
 ```
 Parse Mode: HTML disabled (plain text recommended)
 
 ---
 
-# Module 9 – Airtable Logging
-
-Base: AI Staff – Conversation Engine  
-Table: conversation_log
+# Module 9 – Airtable Logging - Create a record 13 (Important DM Route)
 
 Purpose:
 
@@ -721,37 +701,33 @@ Purpose:
 - Preserve full conversation context across channels
 - Enable accurate AI classification for follow-up messages
 - Support analytics and AI training
-
----
-
+- 
 ## Airtable Field Mapping – INBOUND
-
-| Field | Mapping |
-|------|--------|
-| conversation_id | sender_id |
-| message_id_external | message.mid |
-| message_direction | inbound |
-| message_source | instagram |
-| channel | instagram |
-| wa_number | empty |
-| message_text | message_text |
-| broad_category | first(split(Result,"|")) |
-| issue_category | get(split(Result,"|"),2) |
-| timestamp_utc | {{6.timestamp}} |
-| priority | get(split(Result,"|"),3) |
-| confidence_score | get(split(Result,"|"),4) |
-| resolution_status | unresolved |
-| conversation_status | open |
-| conversation_started | {{6.timestamp}} |
-| conversation_hash | sender_id |
+Base: AI Staff – Conversation Engine  
+Table: conversation_log
+Record: {{6.sender_id}}
+message_id_external: {{1.entry[].messaging[].message.mid}}
+message direction: inbound
+message_source: instagram dm
+message_text: {{49.text}}
+broad_category: {{first(split(7.result; "|"))}}
+issue_category: {{if(get(split(7.result; "|"); 2) = "null"; ""; get(split(7.result; "|"); 2))}}
+timestamp_utc: {{6.timestamp}}
+resol;ution_status: unresolved
+conversation_status: open
+escalation_flag: {{ifempty(get(split(7.result; "|"); 5); false)}}
+Priority: {{get(split(7.result; "|"); 3)}}
+confidence_score: {{get(split(7.result; "|"); 4)}}
+channel: instagram
+cpmversation_started_at: {{6.timestamp}}
+conversation_hash: {{15.sender_handle}}
+label_source: ai_prediction
 
 Note:
 
 `conversation_id` links all messages from the same Instagram user into a single conversation thread.
 
 This identifier is used by the automation when retrieving recent conversation history to provide context to the AI classifier.
-
----
 
 ## Example Record
 
@@ -779,15 +755,39 @@ This identifier is used by the automation when retrieving recent conversation hi
 ]
 ```
 
----
-## HTTP — Send Classified Message to Conversation Engine
 
+---
+
+# Module 10 – Airtable Logging - Create a record 22 (Support Messages Route)
+
+## Airtable Field Mapping – INBOUND
+Base: AI Staff – Conversation Engine  
+Table: conversation_log
+Record: {{6.sender_id}}
+message_id_external: {{1.entry[].messaging[].message.mid}}
+message direction: inbound
+message_source: instagram dm
+message_text: {{49.text}}
+broad_category: {{first(split(7.result; "|"))}}
+issue_category: {{if(get(split(7.result; "|"); 2) = "null"; ""; get(split(7.result; "|"); 2))}}
+timestamp_utc: {{6.timestamp}}
+resol;ution_status: unresolved
+conversation_status: open
+escalation_flag: {{ifempty(get(split(7.result; "|"); 5); false)}}
+Priority: {{get(split(7.result; "|"); 3)}}
+confidence_score: {{get(split(7.result; "|"); 4)}}
+channel: instagram
+cpmversation_started_at: {{6.timestamp}}
+conversation_hash: {{15.sender_handle}}
+label_source: ai_prediction
+
+---
+# Module 11- HTTP — make a request 23 (Support Messages Route)
+
+Purpose: Send Classified Message to Conversation Engine
 This module sends the classified Instagram message to the **Conversation Engine webhook**, which creates the Airtable conversation record and triggers the AI support workflow.
 
-### Module
-HTTP → **Make a request**
-
-### Configuration
+## Configuration
 
 | Field | Value |
 |------|------|
@@ -815,3 +815,115 @@ Content type | JSON |
 "conversation_hash": "{{22.conversation_hash}}"
 }
 ```
+---
+
+# 🔁 Buffer Cleanup Modules (Applicable for both Routes)
+
+## Overview
+
+After AI processing and routing (Important DM / Support branches), the system must clean up the `message_buffer` table to prevent:
+
+- duplicate processing
+- stale messages
+- incorrect aggregation in future runs
+
+---
+
+## Module 1 — Search Buffer Records
+
+### App
+Airtable
+
+### Module
+Search Records
+
+---
+
+### Configuration
+
+**Base** AI Staff – Conversation Engine
+**Table** message_buffer
+
+**Sort**
+- Field: `timestamp`
+- Direction: `Ascending`
+
+---
+
+Formula
+Use standardized conversation key: {conversation_id} = "{{conversation_id}}"
+Fallback (if not yet migrated) : {wa_number} = "{{wa_number}}" 
+Limit: 10-20
+
+## Output
+
+Returns multiple records (bundles):
+
+
+Record A
+Record B
+Record C
+
+
+---
+
+# 🧹 Module 2 — Delete Buffer Records
+
+### App
+Airtable
+
+### Module
+Delete Record
+
+---
+
+## ⚠️ Critical Configuration
+
+Record ID (MUST be mapped) {{1.id}}
+
+Mapping Enable: 
+Map = ON
+
+## How It Works
+
+The module automatically iterates over all bundles from the previous step:
+
+Delete Record A
+Delete Record B
+Delete Record C
+
+
+## Important Notes
+
+### ✔ Correct Behavior
+
+- All buffer records for the conversation are deleted
+- Buffer is fully cleared after processing
+- No duplicate AI runs
+
+
+### ❌ Common Mistakes
+
+#### 1. Single Record Deletion
+
+Record ID = 53.ID
+
+→ Only one record deleted  
+→ Causes buffer corruption
+
+#### 2. Wrong Formula Field
+
+{wa_number} = ...
+
+When system uses:
+
+conversation_id
+
+→ No records found → no cleanup
+
+
+#### 3. Mapping Disabled
+Map = OFF
+→ Only first record deleted
+
+---
