@@ -467,10 +467,10 @@ These variables are dynamically injected into the WhatsApp template when the mes
 
 ## Templates Used
 
-{{1}} = customer name EN
-{{2}} = order ID EN
-{{3}} = customer name RU
-{{4}} = order ID RU
+1 = customer name EN
+2 = order ID EN
+3 = customer name RU
+4 = order ID RU
 
 ### Template — Work Hours
 
