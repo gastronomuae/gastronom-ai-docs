@@ -354,7 +354,7 @@ Send order acknowledgement to the customer’s WhatsApp number using approved Wh
 
 WhatsApp Cloud API configuration for this number is managed in the Meta Developers Console:
 
-https://developers.facebook.com/apps/25486959764339557/use_cases/customize/?use_case_enum=WHATSAPP_BUSINESS_MESSAGING&product_route=whatsapp-business&selected_tab=wa-dev-console&business_id=336841861276587
+https://developers.facebook.com/apps/25486959764339557/use_cases/customize/?use_case_enum=WHATSAPP_BUSINESS_MESSAGING&business_id=336841861276587
 
 This console is used for:
 
@@ -363,13 +363,38 @@ This console is used for:
 - testing message delivery
 - webhook configuration
 
+WhatsApp API Setup
+```
+Meta App: message automation
+App ID: 25486959764339557
+Business Portfolio ID: 336841861276587
+WABA ID: 1321636813460403
+Phone Number ID: 1192944337224419
+Display Number: +971 54 277 8985
+Platform: CLOUD_API
+Throughput: STANDARD
+```
+
+Important production setup note
+```
+Production phone registration was completed via:
+POST /v25.0/1192944337224419/register
+
+WABA webhook subscription was completed via:
+POST /v25.0/1321636813460403/subscribed_apps
+
+Without subscribed_apps, Meta test webhooks work but real inbound messages do not reach Make.
+```
+
+
 ---
 
 #### Template Management
 
-All WhatsApp message templates and template performance statistics are managed in Meta Business Manager:
+All WhatsApp message templates and template performance statistics are managed in Meta Business Manager: 
+WABA ID: 1321636813460403
+https://business.facebook.com/latest/whatsapp_manager/message_templates?business_id=336841861276587&asset_id=1321636813460403 
 
-https://business.facebook.com/latest/whatsapp_manager/message_templates/?business_id=336841861276587&tab=message-templates&filters=%7B%22date_range%22%3A7%2C%22language%22%3A[]%2C%22quality%22%3A[]%2C%22search_text%22%3A%22%22%2C%22status%22%3A[%22APPROVED%22%2C%22IN_APPEAL%22%2C%22PAUSED%22%2C%22PENDING%22%2C%22REJECTED%22]%2C%22tag%22%3A[]%7D&nav_ref=whatsapp_manager&asset_id=1384757296311650
 
 Templates must be approved before they can be used by the WhatsApp Cloud API.
 
@@ -442,27 +467,30 @@ These variables are dynamically injected into the WhatsApp template when the mes
 
 ## Templates Used
 
+{{1}} = customer name EN
+{{2}} = order ID EN
+{{3}} = customer name RU
+{{4}} = order ID RU
+
 ### Template — Work Hours
 
 English
 
-Hello {{customer_name_en}} 👋
-We received your order {{order_id_en}} on gastronom.ae 🛒
-We will contact you shortly with delivery details.
+Hello customer name EN 👋
 
-If you need urgent assistance:
-https://wa.me/971523706376
+We received your order order ID EN on gastronom.ae 🛒
+We will contact you shortly with your delivery details.
+
+If you need urgent assistance, please reply to this message.
 
 Thank you 🙏
 
-Russian
+Здравствуйте customer name RU 👋
 
-Здравствуйте {{customer_name_ru}} 👋
-Мы получили ваш заказ {{order_id_ru}} на gastronom.ae 🛒
+Мы получили ваш заказ order ID RU на gastronom.ae 🛒
 Скоро свяжемся с вами для уточнения деталей доставки.
 
-Если нужна срочная помощь:
-https://wa.me/971523706376
+Если нужна срочная помощь, пожалуйста ответьте на это сообщение.
 
 Спасибо 🙏
 
@@ -470,10 +498,8 @@ https://wa.me/971523706376
 
 ### Template — After Hours
 
-English
-
-Hello {{customer_name_en}} 👋
-We received your order {{order_id_en}} on gastronom.ae 🛒
+Hello customer name EN 👋
+We received your order order ID EN on gastronom.ae 🛒
 We will contact you tomorrow morning to confirm delivery.
 
 If you need urgent assistance:
@@ -481,10 +507,8 @@ https://wa.me/971523706376
 
 Thank you 🙏
 
-Russian
-
-Здравствуйте {{customer_name_ru}} 👋
-Мы получили ваш заказ {{order_id_ru}} на gastronom.ae 🛒
+Здравствуйте customer name RU 👋
+Мы получили ваш заказ order ID RU на gastronom.ae 🛒
 Свяжемся с вами завтра утром для подтверждения доставки.
 
 Если нужна срочная помощь:
@@ -498,20 +522,18 @@ https://wa.me/971523706376
 
 English
 
-Good morning {{customer_name_en}} 🌞
-We received your order {{order_id_en}} on gastronom.ae 🛒
-We will contact you shortly with delivery details.
+Hello customer name EN 👋
+We received your order order ID EN on gastronom.ae 🛒
+We will contact you tomorrow morning to confirm delivery.
 
 If you need urgent assistance:
 https://wa.me/971523706376
 
 Thank you 🙏
 
-Russian
-
-Доброе утро {{customer_name_ru}} 🌞
-Мы получили ваш заказ {{order_id_ru}} на gastronom.ae 🛒
-Скоро свяжемся с вами для уточнения деталей доставки.
+Здравствуйте customer name RU 👋
+Мы получили ваш заказ order ID RU на gastronom.ae 🛒
+Свяжемся с вами завтра утром для подтверждения доставки.
 
 Если нужна срочная помощь:
 https://wa.me/971523706376
