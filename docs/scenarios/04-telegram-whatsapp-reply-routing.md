@@ -30,9 +30,6 @@ Filter — Only replies to bot
 
 8 Airtable — Log outbound message
 
-↓
-
-9 Airtable — Log outbound message (whatsapp inbox)
 
 ---
 
@@ -257,11 +254,6 @@ Example Record
  "conversation_status": "open"
 }
 ```
----
-
-# Module 5 — Airtable: Create Record (whastapp inbox)
-
-Same as previous one, just writing in conversatinos table, sued fro whastapp inbox
 
 ---
 # Logging Logic
