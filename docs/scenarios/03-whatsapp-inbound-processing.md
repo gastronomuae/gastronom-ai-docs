@@ -41,6 +41,8 @@ Build final_message_text (text + image context)
 ↓
 Airtable create record (support_messages)
 ↓
+Airtable create record (whatsapp inbox)
+↓
 Trigger Scenario 07 (AI reply generator)
 ↓
 Airtable search (buffer cleanup)
