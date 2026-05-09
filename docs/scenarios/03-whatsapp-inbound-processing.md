@@ -674,7 +674,15 @@ The Airtable record ID generated here becomes the **primary reference ID
 for the conversation**.
 
 ---
-# Step 13 --- 🧾 Module 70 — JSON (Create JSON)
+
+# Step 13 --- Airtable Create Record 45
+
+**Module:** Airtable → Create Record
+
+Same as pevious one, just writing fro conversations table for whatsapp inbox
+
+---
+# Step 14 --- 🧾 Module 70 — JSON (Create JSON)
 
 Purpose: Prepare structured payload for HTTP module
 
@@ -702,7 +710,7 @@ image_summary = {{trim(ifempty(63.image_summary; ))}}
 
 ---
 
-# Step 14 --- Trigger Scenario 07 (AI Reply Draft) - HTTP Module 46
+# Step 15 --- Trigger Scenario 07 (AI Reply Draft) - HTTP Module 46
 
 Purpose: Trigger the **central AI reply generator scenario**.
 
@@ -737,7 +745,7 @@ Scenario 07 then:
 
 ---
 
-# Step 15 --- Airtable 42 Search Records Again (Buffer Cleanup) 
+# Step 16 --- Airtable 42 Search Records Again (Buffer Cleanup) 
 
 Table: message_buffer
 
@@ -752,7 +760,7 @@ This second search is used only for cleanup.
 
 ---
 
-# Step 16 --- Airtable 43 Delete Record(s) (Buffer Cleanup)
+# Step 17 --- Airtable 43 Delete Record(s) (Buffer Cleanup)
 
 Purpose: Delete all buffered rows returned by the cleanup search.
 
