@@ -12,7 +12,7 @@ WhatsApp → Telegram → WhatsApp
 
 # Architecture Overview
 
-Telegram Bot (Watch Updates)
+2 Telegram Bot (Watch Updates)
 
 ↓
 
@@ -20,15 +20,19 @@ Filter — Only replies to bot
 
 ↓
 
-Tools — Extract WhatsApp number
+4 Tools — Extract WhatsApp number
 
 ↓
 
-WhatsApp Business Cloud — Send Message
+7 WhatsApp Business Cloud — Send Message
 
 ↓
 
-Airtable — Log outbound message
+8 Airtable — Log outbound message
+
+↓
+
+9 Airtable — Log outbound message (whatsapp inbox)
 
 ---
 
@@ -255,6 +259,11 @@ Example Record
 ```
 ---
 
+# Module 5 — Airtable: Create Record (whastapp inbox)
+
+Same as previous one, just writing in conversatinos table, sued fro whastapp inbox
+
+---
 # Logging Logic
 
 Airtable logging occurs only when:
