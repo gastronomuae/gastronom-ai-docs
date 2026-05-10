@@ -24,6 +24,10 @@ If you have any questions about delivery, please contact us via WhatsApp:
 **{{support_whatsapp}}**
 
 ---
+## Minimum Order Value
+
+- Dubai: minimum order 100 AED
+- Abu Dhabi: free delivery from 150 AED
 
 ## When will my order be delivered?
 
@@ -49,14 +53,24 @@ Delivery timing depends on when the order is placed.
 
 • If the request is made after **delivery_chat_cutoff**, the assistant should explain that the delivery will be scheduled the next day.
 
+• Delivery timing in Abu Dhabi differs from Dubai and follows a scheduled weekly route.
+
 
 ### Delivery Area
 
-Delivery is currently available **within Dubai only**.
+Delivery is available across Dubai.
 
-Orders to other emirates (for example Abu Dhabi, Sharjah, Ajman, Ras Al Khaimah, Fujairah, Umm Al Quwain) are not supported at the moment.
+We also offer scheduled delivery to Abu Dhabi every Wednesday.
 
-If a customer asks about delivery outside Dubai, politely explain that delivery is currently limited to Dubai and offer assistance if they will be in Dubai or plan to order within Dubai.
+### Abu Dhabi Delivery
+
+- Minimum order for free delivery: 150 AED
+- Orders below 150 AED: 20 AED delivery fee
+- Delivery day: Wednesday
+- Customers are contacted on the delivery day to confirm timing and details
+
+Delivery to other emirates outside Dubai and Abu Dhabi is currently unavailable.
+
 
 **{{support_whatsapp}}**
 
