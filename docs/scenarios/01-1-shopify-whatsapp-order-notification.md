@@ -542,6 +542,33 @@ https://wa.me/971523706376
 
 ---
 
+### Module 7 - Airtable - Create a record (for both routes where we ahve whastapp send message)
+
+| Airtable field | Current / recommended value | Notes |
+|---|---|---|
+| `conversation_id` | `order_{{trim(replace(1.Name; "#"; ""))}}` | Better than WhatsApp Message ID. Use order as business thread reference. |
+| `wa_number` | `{{32.normalized_phone}}` | Correct. Same phone format used by inbox. |
+| `order_id` | `{{trim(replace(1.Name; "#"; ""))}}` | Correct. Removes `#`. |
+| `message_id_external` | `{{21.Messages[].Message ID}}` / `{{26.Messages[].Message ID}}` | Correct. Use the WhatsApp `wamid...` from each branch. |
+| `message_direction` | `outbound` | Correct. |
+| `message_source` | `whatsapp_A` | Fine. Later you can use `automated_order_ack` if needed. |
+| `message_text` | `Automated order acknowledgement sent for Order #{{trim(replace(1.Name; "#"; ""))}}.` | Change this. Do not use `Message Status`, because it only stores `accepted`. |
+| `broad_category` | `support` | Correct. |
+| `issue_category` | `order_status` | Recommended to add, if field exists. |
+| `timestamp_utc` | `{{formatDate(now; "YYYY-MM-DDTHH:mm:ss.SSS[Z]"; "UTC")}}` | Better than Airtable Created Time. |
+| `agent_name` | `make.com` | Correct. |
+| `conversation_status` | `open` | Correct. |
+| `customer_sentiment` | empty | Correct. |
+| `Priority` | `normal` | Correct. |
+| `channel` | `whatsapp_A` | Correct. |
+| `conversation_started_at` | `{{formatDate(now; "YYYY-MM-DDTHH:mm:ss.SSS[Z]"; "UTC")}}` | Same as timestamp. |
+| `conversation_closed_at` | empty | Correct. |
+| `conversation_hash` | `{{32.normalized_phone}}` | Correct. Must be customer phone, even for outbound. |
+| `label_source` | `system_default` | Fine. |
+
+
+---
+
 ### Module 7 - Logging - Google Sheets — Add Row
 
 Purpose:
