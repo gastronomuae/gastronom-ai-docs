@@ -552,7 +552,7 @@ https://wa.me/971523706376
 | `message_id_external` | `{{21.Messages[].Message ID}}` / `{{26.Messages[].Message ID}}` | Correct. Use the WhatsApp `wamid...` from each branch. |
 | `message_direction` | `outbound` | Correct. |
 | `message_source` | `whatsapp_A` | Fine. Later you can use `automated_order_ack` if needed. |
-| `message_text` | `Automated order acknowledgement sent for Order #{{trim(replace(1.Name; "#"; ""))}}.` | Change this. Do not use `Message Status`, because it only stores `accepted`. |
+| `message_text` | `Automated order acknowledgement sent for Order #{{1.Name}}. |
 | `broad_category` | `support` | Correct. |
 | `issue_category` | `order_status` | Recommended to add, if field exists. |
 | `timestamp_utc` | `{{formatDate(now; "YYYY-MM-DDTHH:mm:ss.SSS[Z]"; "UTC")}}` | Better than Airtable Created Time. |
