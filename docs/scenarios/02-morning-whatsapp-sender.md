@@ -316,7 +316,7 @@ This row is created only after the WhatsApp template message is successfully acc
 | `message_id_external` | `{{9.Messages[].Message ID}}` | WhatsApp `wamid...` returned after template send |
 | `message_direction` | `outbound` | Automated message sent to customer |
 | `message_source` | `whatsapp_A` | Current source/channel value |
-| `message_text` | `Automated order acknowledgement sent for Order #{{trim(replace(15.Name; "#"; ""))}}.` | Do not use WhatsApp message status here |
+| `message_text` | `Automated order acknowledgement sent for Order #{{15.Name}}. |
 | `broad_category` | `support` | Static value |
 | `timestamp_utc` | `{{formatDate(now; "YYYY-MM-DDTHH:mm:ss.SSS[Z]"; "UTC")}}` | Time when Make logged/sent the message |
 | `agent_name` | `make.com` | Static value for automated messages |
