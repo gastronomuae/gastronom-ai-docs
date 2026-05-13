@@ -98,12 +98,13 @@ Stores acknowledgement logging and morning follow-up status.
 2. Google Sheets – Search Rows
 3. Tools – Set Multiple Variables (Block 1)
 4. Tools – Set Multiple Variables (Block 2)
-5. Router
+5. Airtable (creaste in orders table) - currnelty disabled
+6. Router
    - Work Hours
    - After Hours
    - Late Night
-6. WhatsApp Business Cloud – Send Template Message
-7. Google Sheets – Add Row 
+7. WhatsApp Business Cloud – Send Template Message
+8. Google Sheets – Add Row 
 
 ---
 
