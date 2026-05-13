@@ -109,7 +109,7 @@ Airtable → Search Records
 |------|------|
 Base | AI Staff – Conversation Engine |
 Table | conversation_log |
-Formula | `{conversation_id} = "{{conversation_id}}"` |
+Formula | `{wa_number} = "{{conversation_id}}"` |
 Sort | timestamp_utc descending |
 Limit | recent messages |
 
