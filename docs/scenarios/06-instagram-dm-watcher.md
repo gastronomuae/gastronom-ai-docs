@@ -367,7 +367,7 @@ Many customer replies are extremely short and rely on previous context, for exam
 
 Table: conversation_log
 Sort: by timestamp_utc -> Ascending
-Formula: {conversation_hash} = "{{14.data.username}}"
+Formula: {wa_number} = "{{14.data.username}}"
 Limit: 4
 
 ---
@@ -706,6 +706,8 @@ Purpose:
 Base: AI Staff – Conversation Engine  
 Table: conversation_log
 Record: {{6.sender_id}}
+conversation_id: {{6.sender_id}}
+wa_number: {{6.sender_id}}
 message_id_external: {{1.entry[].messaging[].message.mid}}
 message direction: inbound
 message_source: instagram dm
@@ -735,6 +737,7 @@ This identifier is used by the automation when retrieving recent conversation hi
 [
     {
         "conversation_id": "1825206454632684",
+        "wa_number": ﻿insta_anjuta_20",
         "message_id_external": "aWdfZAG1faXRlbToxOklHTWVzc2FnZAUlEOjE3ODQxNDQ4NjQ4MjI4NzczOjM0MDI4MjM2Njg0MTcxMDMwMTI0NDI1ODczMzMxNzg5NTkwODExNTozMjY5OTI3ODk1Mjg0OTI4MDEwNTk4NDc4NzA4ODQwODU3NgZDZD",
         "message_direction": "inbound",
         "message_source": "instagram dm",
