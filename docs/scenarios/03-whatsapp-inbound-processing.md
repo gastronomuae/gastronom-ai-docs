@@ -340,7 +340,7 @@ Lookup parameters:
 |------|------|
 | Sort | timestamp ascending |
 | Limit | 4 |
-| Formula | {conversation_hash} = "{{13.wa_number}}" |
+| Formula | {wa_number} = "{{13.wa_number}}" |
 
 This returns the most recent conversation history between the customer and the store.
 
