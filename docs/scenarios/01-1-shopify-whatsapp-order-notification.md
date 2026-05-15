@@ -182,7 +182,7 @@ replace(
 ```
 
 ```new format to fix removal of +
-{{replace(toString(1.shippingAddress.phone); "/[^0-9]/g"; "")}}
+{{replace(toString(1.shippingAddress.phone); "/[^0-9]/g"; emptystring)}}
 ```
 
 Example output:
