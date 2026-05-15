@@ -25,6 +25,8 @@ Airtable search records (same wa_number, NOT processed)
 ↓
 Text Aggregator (merge messages)
 ↓
+Google Sheets search — latest order by normalized phone
+↓
 IF / ELSE (message type handling)
    ├── TEXT → use message_text
    └── IMAGE → download → analyze (OpenAI) → extract summary
@@ -655,6 +657,7 @@ Table: `support_messages`
 |------|--------|
 | **conversation_id** | {{4.entry[].changes[].value.messages[].id}} |
 | **wa_number** | {{13.wa_number}} |
+| **order_id** | {{75.`1`}}} |
 | **message_id_external** | {{4.entry[].changes[].value.messages[].id}} |
 | **message_direction** | inbound |
 | **message_source** | whastapp_A |
