@@ -725,7 +725,10 @@ Example message format:
 📩 New customer message
 
 📢 {{9.channel}}
-👤 {{9.message_text}}
+📲 {{9.wa_number}}
+🛒 {{9.order_id}}
+💬 {{9.message_text}}
+
 🤖 AI Suggested reply:
 {{9.ai_suggested_reply}}
 🆔 {{9.id}}
