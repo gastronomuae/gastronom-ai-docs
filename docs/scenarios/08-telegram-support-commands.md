@@ -282,6 +282,8 @@ Used when the AI suggested reply was sent.
 | Field | Value |
 |------|------|
 conversation_id | `8.conversation_id` |
+wa_number | `{{8.wa_number}}` |
+order_id | `{{8.order_id}}` |
 message_id_external | `21.data.message_id` |
 message_direction | outbound |
 message_source | instagram dm |
@@ -309,6 +311,8 @@ Used when the agent writes a custom reply in Telegram.
 | Field | Value |
 |------|------|
 conversation_id | `8.conversation_id` |
+wa_number | `{{8.wa_number}}` |
+order_id | `{{8.order_id}}` |
 message_id_external | `12.data.message_id` |
 message_direction | outbound |
 message_source | instagram dm |
@@ -433,6 +437,8 @@ Used when the AI suggested reply was sent.
 | Field | Value |
 |------|------|
 conversation_id | `8.conversation_id` |
+wa_number | `{{8.wa_number}}` |
+order_id | `{{8.order_id}}` |
 message_id_external | `21.data.message_id` |
 message_direction | outbound |
 message_source | whatsapp |
@@ -460,6 +466,8 @@ Used when the agent writes a custom reply in Telegram.
 | Field | Value |
 |------|------|
 conversation_id | `8.conversation_id` |
+wa_number | `{{8.wa_number}}` |
+order_id | `{{8.order_id}}` |
 message_id_external | `12.data.message_id` |
 message_direction | outbound |
 message_source | whatsapp |
