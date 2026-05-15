@@ -798,28 +798,22 @@ Example message format:
 ```
 📦 ORDER CHECK REQUIRED
 
-🧾 #4196
-👤 Kristina Chernova
-📲 
-@ unclevanya.uae
-📢 instagram
-📍 Sama Tower
-💰 226.5
+🧾 {{29.name}}
+👤 {{29.billingAddress.firstName}} {{29.billingAddress.lastName}}
+📲 {{9.wa_number}}
+@ {{9.conversation_hash}}
+📢 {{9.channel}}
+📍 {{29.billingAddress.address1}}
+💰 {{29.totalPriceSet.amount}}
 
 Customer message:
-Здравствуйте.
-Мой номер заказа #4196
+{{9.message_text}}
 
-@dispatcher please confirm status
-🆔 rec0W4mpLQEJsFsWV
-
+@e_dnrvn please confirm status
+🆔 {{9.id}}
 🤖 AI Suggested reply:
 {{9.ai_suggested_reply}}
 
-
-Commands:
-send
-/reply your text
 ```
 
 Purpose:
