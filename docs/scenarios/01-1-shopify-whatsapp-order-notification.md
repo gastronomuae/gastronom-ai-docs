@@ -574,7 +574,7 @@ https://wa.me/971523706376
 
 ---
 
-### Module 7 - Logging - Google Sheets — Add Row
+### Module 8 - Logging - Google Sheets — Add Row
 
 Purpose:
 
@@ -597,7 +597,7 @@ Columns:
 | E      | acknowledgement time |
 | F      | acknowledgement type |
 | G      | follow-up status     |
-
+| H      | normalized_phone     |
 ---
 
 ### Example Output — Add Row
