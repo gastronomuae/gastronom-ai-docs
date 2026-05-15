@@ -233,13 +233,11 @@ gpt-5-nano
 ## Prompt
 
 ```
-Purpose
-
 Classify the email below.
 
-Return exactly 6 values separated by | in this order:
+Return exactly 7 values separated by | in this order:
 
-broad_category|issue_category|priority|confidence|customer_email|supplier_region
+broad_category|issue_category|priority|confidence|customer_email|supplier_region|escalation_flag
 
 broad_category (choose exactly one):
 
@@ -251,6 +249,43 @@ spam
 other
 
 Definitions (IMPORTANT):
+
+
+B2B SALES STRICT QUALIFICATION GATE:
+
+Classify as b2b_sales ONLY if the email clearly shows the sender wants to BUY products from Gastronom.
+
+To qualify as b2b_sales, the message should contain at least one clear buyer signal such as:
+- request for price list
+- request for quotation for specific products
+- request for MOQ / wholesale terms
+- hotel, restaurant, catering, retail, distributor, supermarket, or corporate buyer context
+- specific product names, quantities, delivery location, or purchase requirement
+
+Do NOT classify as b2b_sales just because the message mentions:
+- orders
+- sales
+- worldwide
+- customers
+- traffic
+- leads
+- WhatsApp contact
+- partnership
+- commission
+- daily orders
+
+If the sender says they can bring, make, generate, increase, send, or deliver orders/customers/leads/sales for Gastronom, classify as marketing unless it is clearly phishing or fake, in which case classify as spam.
+
+Very short, vague, generic, or template-like messages with no specific product, company, quantity, or buyer context should NOT be b2b_sales.
+
+Examples:
+"Are you ready to make 10-15 orders daily?" = marketing
+"We can generate more orders for your store" = marketing
+"Do you sell worldwide?" = other
+"Hello is { name} selling worldwide?" = spam
+"Share your WhatsApp contact" with no business context = spam
+"We are a hotel and want wholesale price list for dairy products" = b2b_sales
+"Please quote attached PO with product quantities" = b2b_sales, unless the attachment/email appears suspicious or unrelated
 
 IMPORTANT DISTINCTION:
 
@@ -278,6 +313,12 @@ spam also includes:
 • automated discussion threads or ticket notifications
 • system generated messages where the sender is not directly contacting Gastronom
 • promotional newsletters unrelated to Gastronom business
+
+• placeholder/template messages containing unresolved variables such as { name}, {{name}}, [name], Dear customer, Dear website owner
+• vague cold outreach with no clear product, company, purchase intent, or relationship to Gastronom
+• messages asking only for WhatsApp/contact details without explaining a legitimate purchase, supplier, or support reason
+• unrealistic or generic business promises such as "10-15 orders daily", "guaranteed sales", "increase your revenue", "we can bring customers"
+• messages from random Gmail/Outlook/Yahoo accounts that claim business opportunity but provide no company, website, product details, or buying requirement
 
 
 If the email contains headers or indicators such as:
@@ -318,6 +359,19 @@ order_status also includes questions about delivery time, shipping estimate, whe
 
 If not support, return null.
 
+FINAL CLASSIFICATION OVERRIDE:
+
+Before returning the final answer, check whether the selected broad_category is b2b_sales.
+
+If broad_category = b2b_sales but the email does NOT clearly show that the sender wants to buy products from Gastronom, change broad_category to marketing, spam, or other.
+
+Use:
+- marketing if the sender offers to generate orders, customers, sales, traffic, promotion, SEO, ads, or commissions
+- spam if the message is vague, template-like, suspicious, contains unresolved placeholders, or only asks for contact/WhatsApp without clear business context
+- other if the sender asks a legitimate but unclear general question
+
+Never classify vague cold outreach as b2b_sales.
+
 priority (choose exactly one):
 
 high
@@ -326,7 +380,8 @@ low
 
 Priority rules:
 
-If broad_category = b2b_sales → priority MUST be high.
+If broad_category = b2b_sales → priority MUST be high ONLY when the email passed the B2B SALES STRICT QUALIFICATION GATE.
+If the email is vague, one-line, template-like, or has no clear buyer context, do not classify it as b2b_sales.
 
 If broad_category = supplier_prospect → priority = normal.
 If email clearly mentions urgent shipment, UAE stock availability, exclusive brands, or large-scale proposal → priority = high.
@@ -344,6 +399,16 @@ If broad_category = other → priority = normal.
 confidence:
 
 Return a number between 0.0 and 1.0.
+
+If the email is very short, vague, or missing clear intent, confidence must be below 0.70.
+
+If b2b_sales is selected but the message does not include product, quantity, company type, quotation, wholesale, MOQ, or buyer context, change broad_category according to the FINAL CLASSIFICATION OVERRIDE:
+- marketing if the sender offers to generate orders, customers, sales, traffic, promotion, SEO, ads, or commissions
+- spam if the message is vague, template-like, suspicious, contains unresolved placeholders, or only asks for contact/WhatsApp without clear business context
+- other if the sender asks a legitimate but unclear general question
+
+Never return b2b_sales with high priority for a vague one-line email.
+
 
 customer_email:
 
@@ -393,6 +458,29 @@ unknown
 
 If broad_category is not supplier_prospect, return:
 null
+
+ESCALATION RULES
+
+Set escalation_flag = true when human intervention is required.
+
+Escalate in the following situations:
+
+1. issue_category = complaint
+2. issue_category = refund
+3. issue_category = cancellation
+4. broad_category = b2b_sales
+5. broad_category = supplier_prospect
+6. The sender explicitly asks to speak with a human, manager, or support agent.
+
+In all other cases:
+
+escalation_flag = false
+
+ESCALATION SAFETY RULE
+
+If broad_category = spam or marketing
+then escalation_flag must always be false.
+
 
 Return only the pipe-separated line. No explanation.
 
