@@ -300,43 +300,8 @@ Example API response:
 }
 ```
 
----
-
-### Module 7 — Airtable: Create a record
-
-## Airtable Logging — conversation_log
-
-### Purpose
-
-In addition to the operational Delivery Orders table and Google Sheets acknowledgement log, Scenario 1 now writes an automated outbound message row into Airtable `conversation_log`.
-
-This allows the custom WhatsApp inbox to show the original automated order acknowledgement inside the customer conversation history and to link the chat thread to the Shopify order number.
-
-This row is created only after the WhatsApp template message is successfully accepted by WhatsApp Cloud API.
-
-| Airtable field | Value to use | Notes |
-|---|---|---|
-| `conversation_id` | `order_{{trim(replace(15.Name; "#"; ""))}}` | Business reference for the order thread. Example: `order_4215` |
-| `wa_number` | `{{11.normalized_phone}}` | Customer phone in normalized format, no `+`. Example: `971541345294` |
-| `order_id` | `{{trim(replace(15.Name; "#"; ""))}}` | Shopify order number without `#`. Example: `4215` |
-| `message_id_external` | `{{9.Messages[].Message ID}}` | WhatsApp `wamid...` returned after template send |
-| `message_direction` | `outbound` | Automated message sent to customer |
-| `message_source` | `whatsapp_A` | Current source/channel value |
-| `message_text` | `Automated order acknowledgement sent for Order #{{15.Name}}. |
-| `broad_category` | `support` | Static value |
-| `timestamp_utc` | `{{formatDate(now; "YYYY-MM-DDTHH:mm:ss.SSS[Z]"; "UTC")}}` | Time when Make logged/sent the message |
-| `agent_name` | `make.com` | Static value for automated messages |
-| `conversation_status` | `open` | Static value |
-| `customer_sentiment` | empty | Leave blank |
-| `Priority` | `normal` | Static value |
-| `channel` | `whatsapp_A` | Must match inbox channel filter |
-| `conversation_started_at` | `{{formatDate(now; "YYYY-MM-DDTHH:mm:ss.SSS[Z]"; "UTC")}}` | Same as `timestamp_utc` |
-| `conversation_closed_at` | empty | Leave blank |
-| `conversation_hash` | `{{11.normalized_phone}}` | Same as `wa_number`; identifies customer thread |
-| `label_source` | `system_default` | Or `automation` if you later add that option |
 
 ---
-
 ### Module 8 — Google Sheets: Update Row
 
 Purpose:
