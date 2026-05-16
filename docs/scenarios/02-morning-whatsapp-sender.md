@@ -85,8 +85,10 @@ Possible follow‑up values:
 1. Scheduler (daily trigger)
 2. Google Sheets — Search Rows
 3. Filter rows where follow_up_status = pending
-4. WhatsApp Cloud API — Send Template Message
-5. Google Sheets — Update Row
+4. Search Order shopify (for exculding sending messgae for cancelled orders)
+5. Router to update cancalled orders status in google sheet
+6. WhatsApp Cloud API — Send Template Message
+7. Google Sheets — Update Row
 
 ---
 
@@ -248,15 +250,18 @@ This prevents follow-up messages from being sent for cancelled or invalid orders
 
 ---
 
-### Filter — Valid Orders Only
+### Module 17 — Router (Valaid ordes VS cancelled)
 
-**Label:** `Not Cancelled Orders`
+**Route 1:** `Active Orders`
 
 Condition:
 
 ```text
 display_financial_status ≠ VOIDED
 ```
+**Route 1:** `Cancalled Orders`
+
+Update google sheet follow_up_status = `skipped_cancelled`
 
 ---
 
@@ -264,6 +269,7 @@ display_financial_status ≠ VOIDED
 
 - Morning follow-up message is sent only if the order is **not voided**
 - Prevents sending confirmation for cancelled or invalidated orders
+- Second rote updates googel sheet follouw_up_status to skipped_cancelled, to make sure scneario will not run it again next morning
 
 ---
 
