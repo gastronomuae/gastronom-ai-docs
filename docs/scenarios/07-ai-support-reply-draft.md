@@ -11,27 +11,37 @@ The scenario receives structured message data via webhook, generates a suggested
 ```
 Instagram / WhatsApp
 ↓
-Classification Scenarios
+Channel Ingestion + Classification Scenarios
 ↓
-Airtable Record Created
+Airtable Conversation Record Created
 ↓
-HTTP Request
+HTTP Request to Scenario 07
 ↓
 07-ai-support-reply-draft
 ↓
-Load Conversation Context (Airtable Search)
+Load Current Conversation Record (Airtable Get Record)
 ↓
-Build Context Text (Aggregator)
+Load Recent Conversation Context (Airtable Search)
+↓
+Build Conversation Context Text (Aggregator)
+↓
+Receive Known Order Number from Webhook Payload / Airtable Record
+↓
+Shopify Search Orders (optional, only when order number exists)
 ↓
 Load Configuration Variables
 ↓
 Load Knowledgebase
 ↓
 AI Reply Generated
-        ↓
-Airtable Updated
-     ├ Telegram Notification
-     └ Shopify Search Orders -> Telegram Notification
+↓
+Parse AI JSON Response
+↓
+Airtable Record Updated with AI Suggested Reply
+↓
+Router
+├── Customer Support Telegram Notification
+└── Logistics Telegram Notification
 ```
 
 ---
@@ -51,6 +61,7 @@ Expected payload structure:
         "data": {
             "image_type": null,
             "image_issue": null,
+            "order_id": "#4646",
             "message_text": "hello, where is my order?",
             "order_number": null,
             "product_name": null,
@@ -109,9 +120,9 @@ Airtable → Search Records
 |------|------|
 Base | AI Staff – Conversation Engine |
 Table | conversation_log |
-Formula | `{wa_number} = "{{conversation_id}}"` |
-Sort | timestamp_utc descending |
-Limit | recent messages |
+Formula | {wa_number} = "{{1.conversation_hash}}" |
+Sort | timestamp_utc Ascending |
+Limit | 4 |
 
 ### Purpose
 
@@ -178,73 +189,6 @@ Store: Сейчас уточним [Order #4669]
 
 The aggregated text is passed to the OpenAI prompt so the AI assistant can unders
 
----
-# MODULE 18 — Text Parser - match Pattern - extract order number
-
-Pattern: (?:#|order\s*)?([0-9]{4,6})
-Global Match = Yes
-Case Sensitive = No
-Multline = No
-Singleline = No
-Continue the execution of the route even if the module finds no matches = Yes
-Text = {{18.text}}
-
----
-# MODULE 14 — Airtable — Load Configuration Variables
-
-This module loads operational configuration values used by the AI assistant.
-
-### Module
-Airtable → Search Records
-
-### Configuration
-
-| Field | Value |
-|------|------|
-Base | AI Staff – Conversation Engine |
-Table | Config |
-
-### Purpose
-
-Configuration variables allow operational values to be updated without modifying prompts or automation logic.
-
-Example configuration variables:
-
-| key | value |
-|-----|------|
-support_whatsapp | +971523706376 |
-delivery_same_day_cutoff | 18:00 |
-delivery_chat_cutoff | 21:00 |
-warehouse_location | https://maps.app.goo.gl/49Wvp86JqcqjVpn9A |
-
----
-# MODULE 16 Tools — Text Aggregator (Configuration Builder)
-
-This module converts the configuration table rows into a single structured text block used by the AI prompt.
-
-### Module
-Tools → Text Aggregator
-
-### Configuration
-
-Source module:
-
-Airtable – Search Records
-
-Row separator:
-
-New row
-
-Text format:
-
-{{key}} = {{value}}
-
-### Example Output
-
-support_whatsapp = +971523706376
-delivery_same_day_cutoff = 18:00
-delivery_chat_cutoff = 21:00
-warehouse_location = https://maps.app.goo.gl/49Wvp86JqcqjVpn9A
 
 ---
 # MODULE 15 HTTP — Load Knowledgebase
@@ -260,122 +204,49 @@ https://raw.githubusercontent.com/gastronomuae/gastronom-ai-docs/main/docs/knowl
 Method: Get
 
 ---
-# MODULE 36 Set Variable — order_number
-
-Purpose:
-Extract a 4-digit order number from the customer message so we can decide whether to search Airtable by order number or by phone.
-
-Variable name: order_number
-
-Formula
-```
-{{first(map(split(18.text; ); "[0-9]{4}"))}}
-```
-
-Explanation: 18.text is the recent conversation history block which contains the latest customer message.
-The formula searches for a 4-digit sequence, which matches Gastronom order numbers (e.g. 4201).
-
-Example: Customer message - Where is my order 4201?
-Result - order_number = 4201
-
-Example without number: Customer message - When will you deliver?
-
-Result - order_number = Customer: When will you deliver?
-
-This is why the router filter must also check for numeric length.
 
 ---
-# MODULE 33 Flow control → Router (IF / ELSE)
+# Shopify Search Orders — Order Context Enrichment
 
-Two branches:
-- Branch 1 → order number detected
-- Branch 2 → fallback search by phone
+## Purpose
 
-## Branch 1  - order number detected
+Scenario 07 uses Shopify Search Orders to enrich the AI prompt with basic Shopify order context.
 
-### Router Filter — Order Number Branch
+This replaces the previous Delivery Orders / dispatcher-table lookup.
 
-Filter condition: 
-```
-{{36.order_number}} exists
-AND
-length({{36.order_number}}) = 4
-AND
-{{36.order_number}} matches pattern ^\d{4,6}$
-```
-
-This ensures that only 4-digit numbers trigger the order search.
-If true → search Airtable using order number.
-
-### Airtable 34 → Search records — Order Number Branch
-
-Table : Delivery Orders
-
-Formula 
-```
-{order_number} = "{{36.order_number}}"
-```
-Max records = 1
-
-This returns the dispatcher record for the order.
-
-Example output
-```
-order_number: 4201
-customer_phone: 971561345294
-operational_status: new_order
-customer_status: order_received
-order_total_original: 203
-delivery_address: Sulafa Tower 902
-```
+The goal is to help the AI understand whether the order exists and what its basic Shopify status is before drafting a support reply.
 
 ---
-## Branch 2 - ELSE Branch — Search Order by Phone
 
-### Airtable 35 → Search records — Phone Number Branch
+## When This Module Runs
 
-Table : Delivery Orders
+The Shopify Search Orders module is used only when Scenario 07 receives an order number.
 
-Formula 
-```
-{customer_phone} = "{{1.customer_phone}}"
-```
-Max records = 1
+Order number source priority:
 
-This allows the AI to still find the order when the customer asks something like:
-```
-"When will you send my order?"
-```
-without mentioning the order number.
+1. `data.order_number` from the webhook payload sent by the ingestion scenario
+2. `order_id` from the Airtable conversation record
+3. Text parser fallback, only if no structured order number exists
 
-
-# MODULE 46 Flow Control → Merge
-
-Purpose: Both branches must produce a single unified object called:
-
-Output name: order_record
-
-```
-If 1st condition true 
-        Select: 35 Airtable Search Records [bundle]
-Else
-        Select: 34 Airtable Search Records [bundle]
-```
-
-##Fields Available After Merge
-
-These values are then used in the AI prompt:
-```
-{{46.order_record.order_number}}
-{{46.order_record.customer_phone}}
-{{46.order_record.order_total_original}}
-{{46.order_record.operational_status}}
-{{46.order_record.customer_status}}
-{{46.order_record.last_update}}
-```
-These fields populate the ORDER CONTEXT (Dispatcher Order Table) section of the prompt.
+If no order number is available, Scenario 07 continues without Shopify order context.
 
 ---
+
+## Module
+
+**App:** Shopify  
+**Module:** Search Orders  
+**Query mode:** Advanced / Manual
+
+### Query
+
+If `data.order_number` is stored without `#`:
+
+```text
+name:#{{1.data.order_number}}
+
+---
+
 # Step 2 — OpenAI Reply Generation module 8
 
 Module:
@@ -384,17 +255,10 @@ Module:
 OpenAI → Generate Completion
 ```
 
-Model:
-
-```
-gpt-4o-mini
-```
+Model: gpt-4o-mini
 
 ---
 
-## System Prompt
-
-```
 You are a customer support assistant for Gastronom.ae,
 an online Russian grocery store delivering in Dubai.
 
@@ -402,8 +266,7 @@ You are provided with:
 
 1) Conversation context
 2) Dispatcher order context (delivery operations table)
-3) Configuration variables (operational settings)
-4) Gastronom knowledgebase (official policies)
+3) Gastronom knowledgebase (official policies)
 
 Always follow the data priority rules defined below and use the provided information sources.
 Do not invent information or operational details.
@@ -460,20 +323,42 @@ When conversation history is provided, prefer answering based on the most recent
 
 ---
 
-ORDER CONTEXT (Dispatcher Order Table)
+ORDER CONTEXT (Shopify Order)
 
-The following fields come from the delivery operations table managed by the dispatcher.
-This information reflects the real operational status of the order.
+The following fields come from Shopify.
+This information confirms the order exists and shows payment / fulfillment status, but it does not provide courier ETA or real delivery route status.
 
-Order number: {{46.order_record.order_number}}
-Customer phone: {{46.order_record.customer_phone}}
-Order total: {{46.order_record.order_total_original}}
+Known order number from webhook: {{ifempty(1.data.order_number; )}}
 
-Operational status: {{46.order_record.operational_status}}
-Customer status: {{46.order_record.customer_status}}
-Last update: {{46.order_record.last_update}}
+Shopify order number: {{ifempty(52.name; )}}
+Shopify financial status: {{ifempty(52.displayFinancialStatus; )}}
+Shopify fulfillment status: {{ifempty(52.displayFulfillmentStatus; )}}
+Shopify confirmed: {{ifempty(52.confirmed; )}}
+Shopify order created at: {{ifempty(52.createdAt; )}}
+Shopify order updated at: {{ifempty(52.updatedAt; )}}
+Shopify total: {{ifempty(52.totalPriceSet.amount; )}} {{ifempty(52.totalPriceSet.currencyCode; )}}
 
-If the Order number field in ORDER CONTEXT is empty or missing, assume that no matching order was found in the dispatcher table.
+If Shopify order number is empty but known order number from webhook exists, treat the webhook order number as the likely related order, but do not invent Shopify status.
+
+Important:
+Use Shopify fulfillment status to understand the basic order stage, but remember that Shopify fulfillment status is not the same as live courier / driver ETA.
+
+If financial status is VOIDED, REFUNDED, or the order appears cancelled, do not say it will be delivered. Say we will check the order internally.
+
+If fulfillment status is UNFULFILLED:
+- Treat the order as received but not yet marked as fulfilled in Shopify.
+- Do not say the order is already with the courier or out for delivery.
+- If the customer asks when it will arrive, say we can see the order and will check delivery timing with the team.
+
+If fulfillment status is FULFILLED:
+- Treat the order as completed/fulfilled in Shopify.
+- If the customer asks whether it was delivered, say it appears fulfilled in the system.
+- If the customer says they have not received it, apologize and say we will check with the team immediately.
+
+If fulfillment status is PARTIALLY_FULFILLED:
+- Say part of the order appears fulfilled and we will check the remaining items/status with the team.
+
+Never give an exact delivery time unless it is explicitly provided in the prompt.
 
 ---
 DATA PRIORITY RULES
@@ -491,18 +376,13 @@ In this case do not assume delivery timing or status unless confirmed.
 2) RECENT CONVERSATION HISTORY
 Use conversation history to understand context, follow-up questions, or references like "my order".
 
-3) CONFIGURATION VARIABLES
-Use operational settings such as delivery cutoff times, phone numbers and working hours.
-
-4) KNOWLEDGEBASE
+3) KNOWLEDGEBASE
 Use the knowledgebase for official policies, delivery rules, refunds and store procedures.
 
 Never contradict the dispatcher order table if operational_status was updated.
 
 
 ---
-CONFIGURATION VARIABLES
-{{16.text}}
 
 KNOWLEDGEBASE:
 {{15.data}}
