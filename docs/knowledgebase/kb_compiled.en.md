@@ -18,10 +18,10 @@ Configuration variables such as phone numbers, delivery cutoffs, exchange rates 
 Yes, we deliver across all areas of Dubai, regardless of the district.
 
 Our warehouse is located at:  
-{{warehouse_location}}
+Dubai Investment Park https://maps.app.goo.gl/bFt5crBZTcFvqJ8E9
 
 If you have any questions about delivery, please contact us via WhatsApp:  
-**{{support_whatsapp}}**
+**+971523706376**
 
 ---
 ## Minimum Order Value
@@ -31,29 +31,18 @@ If you have any questions about delivery, please contact us via WhatsApp:
 
 ## When will my order be delivered?
 
-We aim to deliver orders on the **same day** if they are placed **before {{delivery_same_day_cutoff}}**.
+Delivery timing depends on when the order is placed and on courier availability.
 
-Orders placed after this time may be scheduled for the **next available delivery window** depending on courier availability and order volume.
+### Dubai Delivery Time Logic
 
-If an order is placed **between {{delivery_same_day_cutoff}} and {{delivery_chat_cutoff}}**, same-day delivery **might still be possible**, but it requires **manual confirmation from our team**.
+- Orders placed **before 18:00** are usually delivered on the **same day**.
+- Orders placed **between 18:00 and 21:00** may still be delivered the same day, but this requires **manual confirmation from our team** and depends on courier availability and order volume.
+- Orders placed **after 21:00** are normally scheduled for the **next day**.
+- If the customer asks for urgent delivery **after 21:00**, the assistant should not promise same-day delivery or suggest urgent dispatch. It should explain that delivery will be scheduled for the next day.
 
-In such cases, customers should contact us via WhatsApp:
+### Abu Dhabi Delivery
 
-### Delivery Time Logic
-
-Delivery timing depends on when the order is placed.
-
-• Orders placed **before delivery_same_day_cutoff** are usually delivered the same day.
-
-• Orders placed **between delivery_same_day_cutoff and delivery_chat_cutoff** may still be delivered the same day, but require manual confirmation by the team.
-
-• Orders placed **after delivery_chat_cutoff** are delivered **the next day**.
-
-• When the request comes after **delivery_chat_cutoff**, the assistant should not suggest urgent delivery or manual confirmation.
-
-• If the request is made after **delivery_chat_cutoff**, the assistant should explain that the delivery will be scheduled the next day.
-
-• Delivery timing in Abu Dhabi differs from Dubai and follows a scheduled weekly route.
+Delivery timing in Abu Dhabi differs from Dubai and follows a scheduled weekly route.
 
 
 ### Delivery Area
@@ -72,7 +61,7 @@ We also offer scheduled delivery to Abu Dhabi every Wednesday.
 Delivery to other emirates outside Dubai and Abu Dhabi is currently unavailable.
 
 
-**{{support_whatsapp}}**
+**+971523706376**
 
 ---
 
@@ -80,7 +69,7 @@ Delivery to other emirates outside Dubai and Abu Dhabi is currently unavailable.
 
 If you are not satisfied with the quality of any product, please contact us by phone or WhatsApp:
 
-**{{support_whatsapp}}**
+**+971523706376**
 
 We will conduct an internal review. If the issue is confirmed, we will either issue a refund or replace the product.
 
@@ -106,7 +95,7 @@ If a customer cannot receive the delivery personally, they can leave a note in t
 
 The delivery can also be cancelled or rescheduled by contacting:
 
-**{{support_whatsapp}}**
+**+971523706376**
 
 ---
 
@@ -132,7 +121,7 @@ In such cases we suggest a similar product and always confirm the replacement wi
 
 If an error occurred, customers should contact us via WhatsApp or phone:
 
-**{{support_whatsapp}}**
+**+971523706376**
 
 We will investigate the issue and resolve it as quickly as possible.
 
@@ -222,14 +211,12 @@ The process:
 4. The customer sends the transfer receipt.
 5. After confirmation we proceed with delivery.
 
-Exchange rate used for conversion:
-
-**{{rub_aed_exchange_rate}}**
+Exchange rate used for conversion: 25
 
 Bank details:
 
-**Bank:** {{rub_payment_bank_name}}  
-**Transfer phone / account:** {{rub_payment_phone}}
+**Bank:** Raiffeisen  
+**Transfer phone / account:** +79879148751
 
 The RUB amount may be **rounded up slightly to a convenient amount**.
 
@@ -254,7 +241,7 @@ Refunds may be issued:
 
 For refund questions customers should contact:
 
-**{{support_whatsapp}}**
+**+971523706376**
 
 ---
 
@@ -263,12 +250,12 @@ For refund questions customers should contact:
 
 ## Delivery escalation rule
 
-If a customer asks for **same-day delivery after {{delivery_same_day_cutoff}} but before {{delivery_chat_cutoff}}**:
+If a customer asks for **same-day delivery after 18:00} but before 21:00**:
 
 The AI should:
 
 1. Respond politely that same-day delivery **might still be possible**
-2. Ask the customer to contact **{{support_whatsapp}}**
+2. Ask the customer to contact **+971523706376**
 3. Flag the conversation for **human escalation if automation allows**
 
 If the customer's main request cannot be fulfilled (for example delivery outside Dubai), respond only about that limitation and do not answer unrelated follow-up questions.
