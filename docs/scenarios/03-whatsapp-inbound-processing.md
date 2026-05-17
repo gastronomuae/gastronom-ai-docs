@@ -169,7 +169,7 @@ Store every inbound WhatsApp message first in a temporary buffer table so that m
 
 ---
 
-# Step 4 --- Sleep 33 (Buffer Window)
+# Step 4 --- Sleep 33 (Buffer Window) // temorary unlinked, tio reduce airtable usage
 
 Value: 30 seconds
 
@@ -185,7 +185,7 @@ These should be treated as one grouped support message instead of three independ
 
 ---
 
-# Step 5 --- Airtable 17 Search Records (Message Buffer Lookup)
+# Step 5 --- Airtable 17 Search Records (Message Buffer Lookup)  // temorary unlinked, tio reduce airtable usage
 
 Table: message_buffer
 All rows - sorted by timestamp (ascending) 
@@ -202,7 +202,7 @@ phone number from table we searhced matches phone number from sender (webhook ->
 
 ---
 
-# Step 6 --- Text Aggregator 18 (Merge Messages)
+# Step 6 --- Text Aggregator 18 (Merge Messages) // temorary unlinked, tio reduce airtable usage
 
 Source module: Airtable Search Records (message_buffer)
 
@@ -323,7 +323,7 @@ has_image     = true
 ```
 
 ## 💬 ELSE Branch — Text Processing
-🔧 Module 60 — Set Variable : message_text = {{18.text}}
+🔧 Module 60 — Set Variable : message_text = {{13.text}}  //updated after removal of buffer to link to module 13, instead of 18
 
 ## 🔄 Shared Flow (Post Merge) 51
 
@@ -352,7 +352,7 @@ This returns the most recent conversation history between the customer and the s
 ---
 
 ---
-## Filter - Latest Run Only
+## Filter - Latest Run Only // removed after temporary unlinking of message buffering, to reduce airtable appi calls
 ```
   {{length(trim(13.message_text))}} > 0
 AND
@@ -649,7 +649,6 @@ Latest order found from Google Sheets: {{75.`1`}}
 Customer phone: {{13.wa_number}}
 {{48.text}}
 
-Sender: {{18.text}}
 New Message: {{13.message_text}}
 
 ---
@@ -675,7 +674,7 @@ If IMAGE CONTEXT fields are empty or null, ignore them completely and classify b
 Purpose: Combine text + image context into one message
 ```
 final_message_text = 
-{{trim(18.text)}}
+{{trim(13.text)}}
 {{if(trim(ifempty(63.image_type; "")) != ""; "
 Image type: & " + 63.image_type; "")}}
 {{if(trim(ifempty(63.product_name; "")) != ""; "
@@ -727,7 +726,7 @@ Purpose: Only broad_category=support to go forward. Idea is to minimize scenario
 ```
 ---
 
-# Step 15 --- Airtable 42 Search Records Again (Buffer Cleanup) 
+# Step 15 --- Airtable 42 Search Records Again (Buffer Cleanup) // temorary unlinked, tio reduce airtable usage
 
 Table: message_buffer
 
@@ -742,7 +741,7 @@ This second search is used only for cleanup.
 
 ---
 
-# Step 16 --- Airtable 43 Delete Record(s) (Buffer Cleanup)
+# Step 16 --- Airtable 43 Delete Record(s) (Buffer Cleanup) // temorary unlinked, tio reduce airtable usage
 
 Purpose: Delete all buffered rows returned by the cleanup search.
 
