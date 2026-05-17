@@ -474,6 +474,40 @@ Examples:
 - If business wants to BUY from us → b2b_sales (priority MUST be high)
 - If producer wants to SELL goods to us → supplier_prospect
 
+NO-REPLY ACKNOWLEDGEMENT RULE
+
+If the latest customer message is only an acknowledgement, thanks, OK, greeting + acknowledgement, or emoji reaction, and there is no new question, complaint, delivery request, address change, payment issue, product question, or order modification request, classify as:
+
+other|null|low|0.95|false
+
+Examples:
+Ок
+Ок, спасибо
+Спасибо
+Хорошо
+Понял / поняла
+👍
+Thank you
+Thanks
+Ok
+No problem
+
+This rule applies even if a recent order exists in Google Sheets or recent conversation history.
+
+Do not classify these messages as support only because the conversation is related to an order.
+
+Exception:
+If the short message is answering a specific store question, such as confirming an address, phone number, delivery time, substitution, cancellation, refund, or replacement, keep the relevant support issue_category.
+
+Examples:
+Store: Can we deliver tomorrow after 4 PM?
+Customer: Ok
+→ support|order_modification|normal|0.90|false
+
+Store: Please confirm, should we replace this item?
+Customer: Да
+→ support|order_modification|normal|0.90|false
+
 Do not use "other" if the message clearly relates to a retail purchase or customer support.
 
 If the message relates to:
@@ -665,9 +699,10 @@ Table: `support_messages`
 | **message_direction** | inbound |
 | **message_source** | whastapp_A |
 | **message_text** | {{63.order_number}} |
-| **broad_category** | support |
+| **broad_category** | {{get(split(44.result; "|"); 1)}} |
 | **issue_category** | {{if(get(split(44.result; "|"); 2) = "null"; ""; get(split(44.result; "|"); 2))}} |
 | **timestamp** | {{13.timestamp}} |
+| **resolution_status** | {{if(get(split(44.result; "|"); 1) = "other"; "resolved"; "unresolved")}} |
 | **conversation_status** | open |
 | **priority** | {{get(split(44.result; "|"); 3)}} |
 | **channel** | whastapp_A |
@@ -680,7 +715,17 @@ The Airtable record ID generated here becomes the **primary reference ID
 for the conversation**.
 
 ---
-# Step 13 --- 🧾 Module 70 — JSON (Create JSON)
+# Step 14 --- Filter suppoort only
+
+Purpose: Only broad_category=support to go forward. Idea is to minimize scenario7 usage for simple responces like OK, thank you and oterh acknoedgment type of messages as a reply. 
+
+```
+{{45.broad_category}} = suppport
+```
+---
+
+---
+# Step 14 --- 🧾 Module 70 — JSON (Create JSON)
 
 Purpose: Prepare structured payload for HTTP module
 
@@ -708,7 +753,7 @@ image_summary = {{trim(ifempty(63.image_summary; ))}}
 
 ---
 
-# Step 14 --- Trigger Scenario 07 (AI Reply Draft) - HTTP Module 46
+# Step 15 --- Trigger Scenario 07 (AI Reply Draft) - HTTP Module 46
 
 Purpose: Trigger the **central AI reply generator scenario**.
 
@@ -743,7 +788,7 @@ Scenario 07 then:
 
 ---
 
-# Step 15 --- Airtable 42 Search Records Again (Buffer Cleanup) 
+# Step 16 --- Airtable 42 Search Records Again (Buffer Cleanup) 
 
 Table: message_buffer
 
@@ -758,7 +803,7 @@ This second search is used only for cleanup.
 
 ---
 
-# Step 16 --- Airtable 43 Delete Record(s) (Buffer Cleanup)
+# Step 17 --- Airtable 43 Delete Record(s) (Buffer Cleanup)
 
 Purpose: Delete all buffered rows returned by the cleanup search.
 
