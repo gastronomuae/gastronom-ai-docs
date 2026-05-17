@@ -699,7 +699,7 @@ Mapping:
 ```
 message_text  = {{trim(ifempty(63.message_text; ))}}
 image_type    = {{trim(ifempty(63.message_text; ))}}
-order_number  = {{trim(ifempty(63.order_number; ))}}
+order_number  = {{{75.`1`}}
 product_name  = {{trim(ifempty(63.product_name; ))}}
 image_issue   = {{trim(ifempty(63.image_issue; ))}}
 image_summary = {{trim(ifempty(63.image_summary; ))}}
