@@ -148,24 +148,31 @@ Tools → Text Aggregator
 
 Source module:
 
-Airtable – Search Records
+Airtable – Search Records (17)
 
-Row separator:
-
-New row
+Row separator: New row
 
 Example formatting:
-
+```
 {{if(17.message_direction = "inbound"; "Customer"; "Store")}}: {{17.message_text}}
+```
 
+Trying new formaula with enriched order id:
+```
+{{if(17.message_direction = inbound; "Customer"; "Store")}}: {{17.message_text}}{{if(length(trim(17.order_id)) > 0; " [Order #" + replace(17.order_id; "#"; emptystring) + "]"; emptystring)}}
+```
 
 Example output:
-
 
 Customer: Do you deliver to JVC?
 Store: Yes, delivery is available.
 Customer: How long does it take?
 
+New example output expected:
+```
+Customer: Когда доставка? [Order #4669]
+Store: Сейчас уточним [Order #4669]
+```
 
 ### Purpose
 
