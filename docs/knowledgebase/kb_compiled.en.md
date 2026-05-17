@@ -7,7 +7,6 @@ All rules are written in English, but **replies must always be generated in the 
 If the customer writes in Russian → reply in Russian.  
 If the customer writes in English → reply in English.
 
-Configuration variables such as phone numbers, delivery cutoffs, exchange rates and locations are provided dynamically via the configuration system and may override static information.
 
 ---
 
@@ -28,22 +27,19 @@ If you have any questions about delivery, please contact us via WhatsApp:
 
 - Dubai: minimum order 100 AED
 - Abu Dhabi: free delivery from 150 AED
+- Abu Dhabi orders below 150 AED: 20 AED delivery fee
 
 ## When will my order be delivered?
 
-Delivery timing depends on when the order is placed and on courier availability.
+Delivery timing depends on when the order is placed, courier availability, and order volume.
 
 ### Dubai Delivery Time Logic
 
-- Orders placed **before 18:00** are usually delivered on the **same day**.
-- Orders placed **between 18:00 and 21:00** may still be delivered the same day, but this requires **manual confirmation from our team** and depends on courier availability and order volume.
-- Orders placed **after 21:00** are normally scheduled for the **next day**.
-- If the customer asks for urgent delivery **after 21:00**, the assistant should not promise same-day delivery or suggest urgent dispatch. It should explain that delivery will be scheduled for the next day.
-
-### Abu Dhabi Delivery
-
-Delivery timing in Abu Dhabi differs from Dubai and follows a scheduled weekly route.
-
+- Orders placed before 18:00 are usually delivered on the same day.
+- Orders placed between 18:00 and 21:00 may still be delivered the same day, but this requires manual confirmation from our team.
+- Orders placed after 21:00 are normally scheduled for the next day.
+- If the customer asks for urgent delivery after 21:00, the assistant should not promise same-day delivery or suggest urgent dispatch. It should explain that delivery will be scheduled for the next day.
+  
 
 ### Delivery Area
 
@@ -53,15 +49,14 @@ We also offer scheduled delivery to Abu Dhabi every Wednesday.
 
 ### Abu Dhabi Delivery
 
+Delivery timing in Abu Dhabi differs from Dubai and follows a scheduled weekly route.
+
+- Delivery day: Wednesday
 - Minimum order for free delivery: 150 AED
 - Orders below 150 AED: 20 AED delivery fee
-- Delivery day: Wednesday
 - Customers are contacted on the delivery day to confirm timing and details
 
 Delivery to other emirates outside Dubai and Abu Dhabi is currently unavailable.
-
-
-**+971523706376**
 
 ---
 
@@ -250,7 +245,7 @@ For refund questions customers should contact:
 
 ## Delivery escalation rule
 
-If a customer asks for **same-day delivery after 18:00} but before 21:00**:
+If a customer asks for **same-day delivery after 18:00 but before 21:00:
 
 The AI should:
 
