@@ -9,39 +9,29 @@ The scenario receives structured message data via webhook, generates a suggested
 # Architecture Overview
 
 ```
-Instagram / WhatsApp
+WhatsApp / Instagram ingestion scenarios
 ↓
-Channel Ingestion + Classification Scenarios
+HTTP Webhook to Scenario 07
 ↓
-Airtable Conversation Record Created
+Airtable Get Record
 ↓
-HTTP Request to Scenario 07
+Airtable Search Recent Conversation History
 ↓
-07-ai-support-reply-draft
+Conversation History Text Aggregator
 ↓
-Load Current Conversation Record (Airtable Get Record)
+HTTP Module — Load Knowledgebase
 ↓
-Load Recent Conversation Context (Airtable Search)
+Shopify Search Orders for Order Context
 ↓
-Build Conversation Context Text (Aggregator)
+OpenAI — Generate Suggested Reply
 ↓
-Receive Known Order Number from Webhook Payload / Airtable Record
+JSON Module — Parse AI Response
 ↓
-Shopify Search Orders (optional, only when order number exists)
-↓
-Load Configuration Variables
-↓
-Load Knowledgebase
-↓
-AI Reply Generated
-↓
-Parse AI JSON Response
-↓
-Airtable Record Updated with AI Suggested Reply
+Airtable — Update Conversation Record
 ↓
 Router
-├── Customer Support Telegram Notification
-└── Logistics Telegram Notification
+├── Telegram Notification — Normal Support
+└── Telegram Notification — Dispatcher / Logistics Escalation
 ```
 
 ---
@@ -666,17 +656,7 @@ send
 
 ---
 
-# Step 5.B — Shopify Search Orders 29
-
-## Filter - Dispatcher escalation
-
-```
-{{20.needs_dispatch_check}} = true
-AND
-{{20.order_number}} Exists
-```
-
-# Step 6 — Send Telegram Message 30 (Gastronom • Logistics Group)
+# Step 5.B Send Telegram Message 30 (Gastronom • Logistics Group)
 
 Chat ID: -5133624518
 
@@ -685,13 +665,13 @@ Example message format:
 ```
 📦 ORDER CHECK REQUIRED
 
-🧾 {{29.name}}
-👤 {{29.billingAddress.firstName}} {{29.billingAddress.lastName}}
+🧾 {{52.name}}
+👤 {{52.billingAddress.firstName}} {{52.billingAddress.lastName}}
 📲 {{9.wa_number}}
 @ {{9.conversation_hash}}
 📢 {{9.channel}}
-📍 {{29.billingAddress.address1}}
-💰 {{29.totalPriceSet.amount}}
+📍 {{52.billingAddress.address1}}
+💰 {{52.totalPriceSet.amount}}
 
 Customer message:
 {{9.message_text}}
@@ -705,7 +685,7 @@ Customer message:
 
 Purpose:
 
-Escalate to dispatcher and tag him fro action
+Escalate to dispatcher and tag him for action
 
 ---
 
