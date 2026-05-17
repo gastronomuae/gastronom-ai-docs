@@ -607,7 +607,10 @@ then escalation_flag must always be false.
 Return only the pipe-separated values.  
 Do not include explanations.
 
-RECENT CONVERSATION CONTEXT {{48.text}}
+RECENT CONVERSATION CONTEXT 
+Latest order found from Google Sheets: {{75.`1`}}
+Customer phone: {{13.wa_number}}
+{{48.text}}
 
 Sender: {{18.text}}
 New Message: {{13.message_text}}
