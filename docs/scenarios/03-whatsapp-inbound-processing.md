@@ -43,11 +43,14 @@ Build final_message_text (text + image context)
 ↓
 Airtable create record (support_messages)
 ↓
-Trigger Scenario 07 (AI reply generator)
-↓
 Airtable search (buffer cleanup)
 ↓
 Airtable delete buffered records
+↓
+Filter onlly support message to go forward
+↓
+Trigger Scenario 07 (AI reply generator)
+↓
 ```
 ------------------------------------------------------------------------
 
@@ -724,8 +727,39 @@ Purpose: Only broad_category=support to go forward. Idea is to minimize scenario
 ```
 ---
 
+# Step 15 --- Airtable 42 Search Records Again (Buffer Cleanup) 
+
+Table: message_buffer
+
+Formula: Search all buffered rows for the same wa_number (same as in step 10, just with different formula)
+```
+{wa_number} = "{{13.wa_number}}"
+```
+
+Purpose:
+Re-fetch buffered records after the merged conversation has already been logged and Scenario 07 has been triggered.
+This second search is used only for cleanup.
+
 ---
-# Step 14 --- 🧾 Module 70 — JSON (Create JSON)
+
+# Step 16 --- Airtable 43 Delete Record(s) (Buffer Cleanup)
+
+Purpose: Delete all buffered rows returned by the cleanup search.
+
+This ensures:
+
+- next customer message starts a fresh buffer window
+- old messages are not merged with future ones
+- buffer table remains temporary and lightweight
+
+Important:
+
+- Cleanup happens after OpenAI and HTTP trigger
+- Otherwise downstream modules may execute multiple times due to multi-bundle search results
+
+
+---
+# Step 17 --- 🧾 Module 70 — JSON (Create JSON)
 
 Purpose: Prepare structured payload for HTTP module
 
@@ -753,7 +787,7 @@ image_summary = {{trim(ifempty(63.image_summary; ))}}
 
 ---
 
-# Step 15 --- Trigger Scenario 07 (AI Reply Draft) - HTTP Module 46
+# Step 18 --- Trigger Scenario 07 (AI Reply Draft) - HTTP Module 46
 
 Purpose: Trigger the **central AI reply generator scenario**.
 
@@ -788,37 +822,6 @@ Scenario 07 then:
 
 ---
 
-# Step 16 --- Airtable 42 Search Records Again (Buffer Cleanup) 
-
-Table: message_buffer
-
-Formula: Search all buffered rows for the same wa_number (same as in step 10, just with different formula)
-```
-{wa_number} = "{{13.wa_number}}"
-```
-
-Purpose:
-Re-fetch buffered records after the merged conversation has already been logged and Scenario 07 has been triggered.
-This second search is used only for cleanup.
-
----
-
-# Step 17 --- Airtable 43 Delete Record(s) (Buffer Cleanup)
-
-Purpose: Delete all buffered rows returned by the cleanup search.
-
-This ensures:
-
-- next customer message starts a fresh buffer window
-- old messages are not merged with future ones
-- buffer table remains temporary and lightweight
-
-Important:
-
-- Cleanup happens after OpenAI and HTTP trigger
-- Otherwise downstream modules may execute multiple times due to multi-bundle search results
-
----
 
 # Resulting System Architecture
 
